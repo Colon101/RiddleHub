@@ -4,7 +4,7 @@ namespace UtilFunctions
 {
     class UtilFunctionsClass
     {
-        public const string DBConnString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=S:\\downloads\\School-final-master\\RiddleHub\\App_Data\\Database.mdf;Integrated Security=True";
+        public const string DBConnString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Kfir\\Documents\\RiddleHub\\RiddleHub\\App_Data\\Database.mdf;Integrated Security=True";
         public static bool ValidateEmail(string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -18,6 +18,7 @@ namespace UtilFunctions
         }
         public static string ValidatePassword(string password)
         {
+
             if (string.IsNullOrEmpty(password)) return "Password is Empty";
             if (password.Length <= 8) return "Password is too short (8 characters or more)";
             if (!password.Any(char.IsDigit)) return "Password requires at least one digit";
