@@ -85,6 +85,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Data\Helper.cs" />
     <Compile Include="SimpleUtilFunctions.cs" />
     <Compile Include="create.aspx.cs">
       <DependentUpon>create.aspx</DependentUpon>

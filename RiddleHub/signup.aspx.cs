@@ -16,7 +16,7 @@ namespace RiddleHub
             string email = Request.Form["email"];
             string password = Request.Form["password"];
             string username = Request.Form["username"];
-            if (UtilFunctionsClass.validUserName(username))
+            if (UtilFunctionsClass.ValidUserName(username))
             {
                 st += "<table dir ='ltr' border ='1'>";
                 st += "<tr><th style='color:red'> Error </th></tr>";

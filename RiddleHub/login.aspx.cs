@@ -3,7 +3,7 @@ using System.Data.SqlClient;
 using UtilFunctions;
 namespace RiddleHub
 {
-    public partial class login : System.Web.UI.Page
+    public partial class Login : System.Web.UI.Page
     {
         public string st;
         protected void Page_Load(object sender, EventArgs e)
@@ -34,7 +34,7 @@ namespace RiddleHub
                     string query = "SELECT COUNT(*) FROM dbo.[user] WHERE email = @Email AND password = @Password;";
                     bool login = false;
 
-                    using (SqlConnection conn = new SqlConnection(UtilFunctionsClass.DBConnString))
+                    using (SqlConnection conn = Helper.ConnectToDb("Database.mdf"))
                     {
                         SqlCommand cmd = new SqlCommand(query, conn);
                         cmd.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar).Value = email;
@@ -49,6 +49,7 @@ namespace RiddleHub
                         st += "<table dir='ltr' border='1'>";
                         st += "<tr><th style='color:green'>Success</th></tr>";
                         st += "</table>";
+
 
                     }
                     else

@@ -1,10 +1,11 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace UtilFunctions
 {
     class UtilFunctionsClass
     {
-        public const string DBConnString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Kfir\\Documents\\RiddleHub\\RiddleHub\\App_Data\\Database.mdf;Integrated Security=True";
+        public const string DBConnString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Kfir\\Documents\\RiddleHub\\RiddleHub\\RiddleHub\\App_Data\\Database.mdf;Integrated Security=True";
         public static bool ValidateEmail(string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -14,7 +15,7 @@ namespace UtilFunctions
 
             // Validate using regex for simplicity and thoroughness
             var emailRegex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return System.Text.RegularExpressions.Regex.IsMatch(email, emailRegex);
+            return Regex.IsMatch(email, emailRegex);
         }
         public static string ValidatePassword(string password)
         {
@@ -25,7 +26,7 @@ namespace UtilFunctions
             if (!password.Any(char.IsUpper)) return "Password requires at least one uppercase character";
             return "Valid";
         }
-        public static bool validUserName(string username)
+        public static bool ValidUserName(string username)
         {
             string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_";
             foreach (char c in username) if (validChars.Contains(c)) return false;
