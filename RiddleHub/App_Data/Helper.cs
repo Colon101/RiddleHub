@@ -27,6 +27,13 @@ public class Helper
         return conn;
     }
 
+    public static string GenerateConnectionString(string fileName)
+    {
+
+        string path = HttpContext.Current.Server.MapPath("App_Data/") + fileName;
+
+        return @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=" + path + ";Integrated Security=True;Connect Timeout=30";
+    }
     public static void DoQuery(string fileName, string sql)
     {
         SqlConnection conn = ConnectToDb(fileName);
