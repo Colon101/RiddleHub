@@ -1,194 +1,196 @@
 ﻿* {
-    font-family: "Roboto", sans-serif;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
 }
 
 .header {
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 25px;
-    transition: 0.3s;
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 25px;
+  transition: 0.3s;
 }
 
 .logo a {
-    display: block;
+  display: block;
 }
 
-    .logo a img:hover {
-        transform: scale(0.9);
-    }
+.logo a img:hover {
+  transform: scale(0.9);
+}
 
-    .logo a img {
-        transition: 0.7s;
-        display: block;
-        transform: scale(0.8);
-        margin-top: 5px;
-        padding-bottom: 8px;
-        width: 100%;
-    }
+.logo a img {
+  transition: 0.7s;
+  display: block;
+  transform: scale(0.8);
+  margin-top: 5px;
+  padding-bottom: 8px;
+  width: 100%;
+}
 
 .navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .menu {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: row;
-    z-index: index 1;
-    transition: 0.5s;
-    background-color: #f4f4f4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  z-index: index 1;
+  transition: 0.5s;
+  background-color: #f4f4f4;
 }
 
-    .menu li {
-        list-style-type: none;
-    }
+.menu li {
+  list-style-type: none;
+}
 
-        .menu li a {
-            text-decoration: none;
-            color: black;
-            display: block;
-            padding: 40px 25px;
-            font-size: 18px;
-            line-height: 1;
-            transition: 0.3s;
-        }
+.menu li a {
+  text-decoration: none;
+  color: black;
+  display: block;
+  padding: 40px 25px;
+  font-size: 18px;
+  line-height: 1;
+  transition: 0.3s;
+}
 
-            .menu li a:hover {
-                box-shadow: 0 -5px 0px black inset, 500px 0 0 rgba(0, 0, 0, 0.1) inset;
-                padding: 35px 25px 45px 25px;
-            }
+.menu li a:hover {
+  box-shadow:
+    0 -5px 0px black inset,
+    500px 0 0 rgba(0, 0, 0, 0.1) inset;
+  padding: 35px 25px 45px 25px;
+}
 
 .hamburger {
-    position: relative;
-    width: 30px;
-    height: 4px;
-    background: black;
-    border-radius: 10px;
-    cursor: pointer;
-    z-index: 2000;
-    transition: 0.3s;
+  position: relative;
+  width: 30px;
+  height: 4px;
+  background: black;
+  border-radius: 10px;
+  cursor: pointer;
+  z-index: 2000;
+  transition: 0.3s;
 }
 
-    .hamburger::before {
-        content: "";
-        position: absolute;
-        height: 4px;
-        right: 0;
-        background: black;
-        border-radius: 10px;
-        transition: 0.3s;
-        top: -10px;
-        width: 20px;
-    }
+.hamburger::before {
+  content: "";
+  position: absolute;
+  height: 4px;
+  right: 0;
+  background: black;
+  border-radius: 10px;
+  transition: 0.3s;
+  top: -10px;
+  width: 20px;
+}
 
-    .hamburger::after {
-        content: "";
-        position: absolute;
-        height: 4px;
-        right: 0;
-        background: black;
-        border-radius: 10px;
-        transition: 0.3s;
-        top: 10px;
-        width: 25px;
-    }
+.hamburger::after {
+  content: "";
+  position: absolute;
+  height: 4px;
+  right: 0;
+  background: black;
+  border-radius: 10px;
+  transition: 0.3s;
+  top: 10px;
+  width: 25px;
+}
 
 .toggle-menu {
-    position: absolute;
-    width: 30px;
-    height: 100%;
-    cursor: pointer;
-    opacity: 0;
-    z-index: 3000;
+  position: absolute;
+  width: 30px;
+  height: 100%;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 3000;
 }
 
 .hamburger,
 .toggle-menu {
-    display: none;
+  display: none;
 }
 
 .navigation input:checked ~ .hamburger {
-    background: transparent;
+  background: transparent;
 }
 
-    .navigation input:checked ~ .hamburger:before {
-        top: 0;
-        width: 30px;
-        transform: rotate(-135deg);
-    }
+.navigation input:checked ~ .hamburger:before {
+  top: 0;
+  width: 30px;
+  transform: rotate(-135deg);
+}
 
-    .navigation input:checked ~ .hamburger:after {
-        top: 0;
-        width: 30px;
-        transform: rotate(-225deg);
-    }
+.navigation input:checked ~ .hamburger:after {
+  top: 0;
+  width: 30px;
+  transform: rotate(-225deg);
+}
 
 .separator {
-    border-top: 1px solid #a8a8a8;
-    margin-bottom: 10px;
-    margin-inline: 15px;
+  border-top: 1px solid #a8a8a8;
+  margin-bottom: 10px;
+  margin-inline: 15px;
 }
 
 .navigation input:checked ~ .menu {
-    right: 0;
-    box-shadow: -20px 0 40px rgba(0, 0, 0, 0.3);
+  right: 0;
+  box-shadow: -20px 0 40px rgba(0, 0, 0, 0.3);
 }
 
 @media screen and (min-width: 1000px) {
-    .navigation input:checked ~ .menu {
-        box-shadow: none;
-    }
+  .navigation input:checked ~ .menu {
+    box-shadow: none;
+  }
 }
 
 @media screen and (max-width: 1000px) {
-    .hamburger,
-    .toggle-menu {
-        display: block;
-    }
+  .hamburger,
+  .toggle-menu {
+    display: block;
+  }
 
-    .header {
-        padding: 10px 20px;
-    }
+  .header {
+    padding: 10px 20px;
+  }
 
-    .menu {
-        overflow-y: auto;
-        justify-content: start;
-        flex-direction: column;
-        align-items: center;
-        position: fixed;
-        top: 0;
-        right: -300px;
-        width: 300px;
-        height: 100%;
-        padding-top: 113px;
-        z-index: 1000;
-        background-color: white;
-    }
+  .menu {
+    overflow-y: auto;
+    justify-content: start;
+    flex-direction: column;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 300px;
+    height: 100%;
+    padding-top: 113px;
+    z-index: 1000;
+    background-color: white;
+  }
 
-        .menu li {
-            width: 100%;
-        }
+  .menu li {
+    width: 100%;
+  }
 
-            .menu li a,
-            .menu li a:hover {
-                padding: 30px;
-                font-size: 24px;
-                box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
-            }
+  .menu li a,
+  .menu li a:hover {
+    padding: 30px;
+    font-size: 24px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+  }
 }
