@@ -9,6 +9,11 @@ namespace RiddleHub
         public string st;
         protected void Page_Load(object sender, EventArgs e)
         {
+            bool loggedin = UtilFunctionsClass.isLoggedIn(Session);
+            if (loggedin)
+            {
+                Response.Redirect("/my.aspx");
+            }
             if (Request.Form["submit"] == null)
             {
                 return;
@@ -73,11 +78,12 @@ namespace RiddleHub
                         cmd.ExecuteNonQuery();
                     }
                     st += "<table dir ='ltr' border ='1'>";
-                    st += "<tr><th>Result</th></tr>";
-                    st += $"<tr><td>Username:</td><td>{username}</td></tr>";
-                    st += $"<tr><td>Email:</td><td>{email}</td></tr>";
-                    st += $"<tr><td>Password:</td><td>{password}</td></tr>";
+                    st += "<tr><th>Success</th></tr>";
                     st += "</table>";
+                    Session["username"] = username;
+                    Session["email"] = email;
+                    Session["password"] = password;
+
                 }
 
                 resultLiteral.Text = st;

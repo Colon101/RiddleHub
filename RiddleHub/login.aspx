@@ -77,12 +77,23 @@
                 <input type="password" name="password" id="passwordInput" class="form-control" required>
             </div>
             <input type="submit" value="Login" name="submit" class="btn">
-            <asp:Literal ID="resultLiteral" runat="server"></asp:Literal>
+            <div id="Result">
+                <asp:Literal ID="resultLiteral" runat="server"></asp:Literal>
+            </div>
         </form>
     </div>
 
     <script src="iframe.js"></script>
-
+    <script>
+        relayMessage("login")
+        let res = document.getElementById("Result").textContent
+        res = res.replaceAll("\n", "")
+        res = res.replaceAll(" ", "");
+        res = res.trim();
+        if (res == "Success") {
+            relayMessage("reload")
+        }
+    </script>
 </body>
 
 </html>

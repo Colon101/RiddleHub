@@ -49,7 +49,9 @@ namespace RiddleHub
                         st += "<table dir='ltr' border='1'>";
                         st += "<tr><th style='color:green'>Success</th></tr>";
                         st += "</table>";
-
+                        Session["username"] = UtilFunctionsClass.GetUsernameFromEmail(email);
+                        Session["email"] = email;
+                        Session["password"] = password;
 
                     }
                     else

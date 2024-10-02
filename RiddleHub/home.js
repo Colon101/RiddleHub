@@ -28,11 +28,9 @@ function createRiddle(question, answer, hint) {
   document.getElementById("Riddles").appendChild(questionLi);
 }
 async function getRiddles() {
-  console.log("aa");
   let req = await fetch("/riddles");
   let json = await req.json();
   let riddleList = json.riddleList;
-  console.log(riddleList);
   for (let i = 0; i < riddleList.length; i++) {
     if (
       riddleList[i].riddle_hint !== null &&

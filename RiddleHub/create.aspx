@@ -90,7 +90,9 @@
             </form>
         </div>
         <script src="iframe.js"></script>
-
+        <script>
+            relayMessage("create")
+        </script>
     </body>
 
     </html>

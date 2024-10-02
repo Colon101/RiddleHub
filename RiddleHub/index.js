@@ -5,19 +5,44 @@
   }
 });
 window.addEventListener("message", (event) => {
-  if (event.data === "clickedInsideIframe") {
-    hideNav();
-  }
+
+    if (event.data === "clickedInsideIframe") {
+        hideNav();
+    }
+    else if (event.data === "reload") {
+
+        window.location.hash = "#my"
+        window.location.reload()
+    }
+    else if (event.data === "reloadout") {
+        window.location.hash = ""
+        window.location.reload()
+
+    }
+    else {
+        if (typeof event.data == "string") {
+
+        window.location.hash = "#" + event.data
+        }
+    }
 });
 function hideNav() {
   document.querySelector(".toggle-menu").checked = false;
 }
 document.querySelectorAll(".pages").forEach((page) => {
   page.addEventListener("click", () => {
-    pageid = page.id === "homeIcon" ? "home" : page.id;
+      pageid = page.id === "homeIcon" ? "home" : page.id;
     const contentElement = document.getElementById("content");
     contentElement.src = pageid + ".aspx";
-    hideNav();
+      hideNav();
+      if (page.textContent.trim() === "Sign Out") {
+          contentElement.src = "signout.aspx"
+          window.location.hash = "#signout"
+      }
+      if (page.textContent.startsWith(" Hi!")) {
+          contentElement.src = "my.aspx"
+          window.location.hash = "#my"
+      }
   });
 });
 const handleResize = () => {

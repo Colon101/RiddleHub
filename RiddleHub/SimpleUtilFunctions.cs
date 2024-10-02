@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Data.SqlClient;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Web.SessionState;
 
 namespace UtilFunctions
 {
@@ -31,6 +33,47 @@ namespace UtilFunctions
             string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_";
             foreach (char c in username) if (validChars.Contains(c)) return false;
             return true;
+        }
+        public static bool isLoggedIn(HttpSessionState session)
+        {
+            if (session["email"] == null) return false;
+            else if (session["password"] == null) return false;
+            else if (session["username"] == null) return false;
+            return true;
+        }
+        public static void logOut(HttpSessionState session)
+        {
+            session["email"] = null;
+            session["password"] = null;
+            session["username"] = null;
+        }
+        public static string GetUsernameFromEmail(string email)
+        {
+            string query = @" SELECT username FROM dbo.[user] WHERE email = @Email";
+            string username = null;
+            using (SqlConnection conn = Helper.ConnectToDb("Database.mdf"))
+            {
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar).Value = email;
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        username = reader.GetString(0);
+                    }
+                }
+            }
+            if (username != null)
+            {
+
+                return username;
+            }
+            return null;
+        }
+        public static void BECAREFULL_____THISCLEANSTHEDB_CleanDb()
+        {
+
         }
     }
 }

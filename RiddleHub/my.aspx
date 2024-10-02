@@ -78,6 +78,9 @@
             </ul>
         </div>
         <script src="iframe.js"></script>
+        <script>
+            relayMessage("my")
+        </script>
     </body>
 
     </html>

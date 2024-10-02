@@ -85,13 +85,16 @@
     <Content Include="home.js" />
     <Content Include="iframe.js" />
     <Content Include="index.js" />
+    <Content Include="loading.gif" />
     <Content Include="login.aspx" />
     <Content Include="logo.png" />
     <Content Include="my.aspx" />
     <Content Include="pagestyles.css" />
     <Content Include="riddles.aspx" />
+    <Content Include="signout.aspx" />
     <Content Include="signup.aspx" />
     <Content Include="styles.css" />
+    <Content Include="success.aspx" />
     <Content Include="Web.config" />
     <Content Include="index.aspx">
       <BrowseToURL>~/index.aspx</BrowseToURL>
@@ -112,6 +115,13 @@
     </Compile>
     <Compile Include="riddles.aspx.designer.cs">
       <DependentUpon>riddles.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="signout.aspx.cs">
+      <DependentUpon>signout.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="signout.aspx.designer.cs">
+      <DependentUpon>signout.aspx</DependentUpon>
     </Compile>
     <Compile Include="SimpleUtilFunctions.cs" />
     <Compile Include="create.aspx.cs">
@@ -156,6 +166,13 @@
     </Compile>
     <Compile Include="signup.aspx.designer.cs">
       <DependentUpon>signup.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="success.aspx.cs">
+      <DependentUpon>success.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="success.aspx.designer.cs">
+      <DependentUpon>success.aspx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>

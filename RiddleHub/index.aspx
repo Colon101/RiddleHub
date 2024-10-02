@@ -27,10 +27,10 @@
                 </div>
                 <ul class="menu">
                     <li><a class="pages" id="home" href="#">Home</a></li>
-                    <li><a class="pages" id="create" href="#create">Create a Riddle</a></li>
-                    <li><a class="pages" id="my" href="#my">My Riddles</a></li>
-                    <li><a class="pages" id="login" href="#login">Login</a></li>
-                    <li><a class="pages" id="signup" href="#signup">Sign Up</a></li>
+                    <li><a class="pages" id="create" href="#">Create a Riddle</a></li>
+                    <li><a class="pages" id="my" href="#">My Riddles</a></li>
+                    <li><a class="pages" id="login" href="#"> <asp:Literal ID="loginText" runat="server"></asp:Literal> </a></li>
+                    <li><a class="pages" id="signup" href="#"> <asp:Literal ID="signupText" runat="server"></asp:Literal> </a></li>
                 </ul>
             </div>
         </header>
