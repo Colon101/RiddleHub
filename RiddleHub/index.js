@@ -32,7 +32,7 @@ document.querySelectorAll(".pages").forEach((page) => {
       contentElement.src = "signout.aspx";
       window.location.hash = "#signout";
     }
-    if (page.textContent.startsWith(" Hi!")) {
+    if (page.textContent.trim().startsWith("Hi!")) {
       contentElement.src = "my.aspx";
       window.location.hash = "#my";
     }
