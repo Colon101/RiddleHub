@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="signout.aspx.cs" Inherits="RiddleHub.signout" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="signout.aspx.cs" Inherits="RiddleHub.Signout" %>
 
     <!DOCTYPE html>
 

@@ -77,7 +77,7 @@
         <script>
             let res = document.getElementById("signoutD").textContent.replaceAll("\n", "").trim()
             if (res == "reload") {
-                relayMessage("reloadout");
+                relayMessage("SIGNOUT");
             }
         </script>
     </body>

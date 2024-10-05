@@ -1,15 +1,14 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="create.aspx.cs" Inherits="RiddleHub.create" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="create.aspx.cs" Inherits="RiddleHub.Create" %>
 
-    <!DOCTYPE html>
+<!DOCTYPE html>
 
-    <html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-    <head runat="server">
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-        <link rel="stylesheet" href="pagestyles.css">
-    </head>
+<head runat="server">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="pagestyles.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,34 +64,35 @@
             cursor: pointer;
         }
 
-        .btn:hover {
-            background-color: #0056b3;
-        }
+            .btn:hover {
+                background-color: #0056b3;
+            }
     </style>
+</head>
 
-    <body>
-        <div id="riddleCreator" class="container">
-            <h1>Create a Riddle</h1>
-            <form action="" class="riddle-form">
-                <div class="form-group">
-                    <label for="riddle">Riddle:</label>
-                    <input type="text" name="riddle" id="riddleInput" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="hint">Hint: (optional)</label>
-                    <input type="text" name="hint" id="hintInput" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="answer">Answer:</label>
-                    <input type="text" name="answer" id="answerInput" class="form-control" required>
-                </div>
-                <input type="submit" value="Create" class="btn">
-            </form>
-        </div>
-        <script src="iframe.js"></script>
-        <script>
-            relayMessage("create")
-        </script>
-    </body>
+<body>
+    <div id="riddleCreator" class="container">
+        <h1>Create a Riddle</h1>
+        <form class="riddle-form">
+            <div class="form-group">
+                <label for="riddle">Riddle:</label>
+                <input type="text" name="riddle" id="riddleInput" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="hint">Hint: (optional)</label>
+                <input type="text" name="hint" id="hintInput" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="answer">Answer:</label>
+                <input type="text" name="answer" id="answerInput" class="form-control" required>
+            </div>
+            <input type="submit" value="Create" class="btn">
+        </form>
+    </div>
+    <script src="iframe.js"></script>
+    <script>
+        relayMessage("create")
+    </script>
+</body>
 
-    </html>
+</html>

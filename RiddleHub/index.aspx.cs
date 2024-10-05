@@ -9,7 +9,7 @@ namespace RiddleHub
         public string signupst;
         protected void Page_Load(object sender, EventArgs e)
         {
-            bool loggedIn = UtilFunctionsClass.isLoggedIn(Session);
+            bool loggedIn = UtilFunctionsClass.IsLoggedIn(Session);
             if (loggedIn)
             {
                 loginText.Text = "Hi! " + Session["username"];

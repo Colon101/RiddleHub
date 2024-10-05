@@ -11,7 +11,7 @@ namespace RiddleHub
 {
 
 
-    public partial class my
+    public partial class My
     {
     }
 }

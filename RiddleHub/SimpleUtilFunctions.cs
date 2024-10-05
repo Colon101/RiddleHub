@@ -34,14 +34,14 @@ namespace UtilFunctions
             foreach (char c in username) if (validChars.Contains(c)) return false;
             return true;
         }
-        public static bool isLoggedIn(HttpSessionState session)
+        public static bool IsLoggedIn(HttpSessionState session)
         {
             if (session["email"] == null) return false;
             else if (session["password"] == null) return false;
             else if (session["username"] == null) return false;
             return true;
         }
-        public static void logOut(HttpSessionState session)
+        public static void LogOut(HttpSessionState session)
         {
             session["email"] = null;
             session["password"] = null;

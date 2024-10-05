@@ -3,16 +3,20 @@ using UtilFunctions;
 
 namespace RiddleHub
 {
-    public partial class signout : System.Web.UI.Page
+    public partial class Signout : System.Web.UI.Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            bool isLoggedIn = UtilFunctionsClass.isLoggedIn(Session);
+            bool isLoggedIn = UtilFunctionsClass.IsLoggedIn(Session);
             if (isLoggedIn)
             {
-                UtilFunctionsClass.logOut(Session);
+                UtilFunctionsClass.LogOut(Session);
                 Session["loggingOut"] = true;
                 Response.Redirect("/success");
+            }
+            else
+            {
+                Response.Redirect("/home");
             }
         }
     }

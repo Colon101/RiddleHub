@@ -9,7 +9,7 @@ namespace RiddleHub
         public string st;
         protected void Page_Load(object sender, EventArgs e)
         {
-            bool loggedin = UtilFunctionsClass.isLoggedIn(Session);
+            bool loggedin = UtilFunctionsClass.IsLoggedIn(Session);
             if (loggedin)
             {
                 Response.Redirect("/my.aspx");

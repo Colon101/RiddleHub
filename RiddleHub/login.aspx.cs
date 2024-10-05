@@ -9,6 +9,9 @@ namespace RiddleHub
         protected void Page_Load(object sender, EventArgs e)
         {
 
+
+
+
             if (Request.Form["submit"] != null)
             {
 
@@ -47,7 +50,7 @@ namespace RiddleHub
                     if (login)
                     {
                         st += "<table dir='ltr' border='1'>";
-                        st += "<tr><th style='color:green'>Success</th></tr>";
+                        st += $"<tr><th style='color:green'>Success '{UtilFunctionsClass.GetUsernameFromEmail(email)}'</th></tr>";
                         st += "</table>";
                         Session["username"] = UtilFunctionsClass.GetUsernameFromEmail(email);
                         Session["email"] = email;
@@ -65,6 +68,12 @@ namespace RiddleHub
 
                 }
 
+                resultLiteral.Text = st;
+            }
+            if ((Session["permission"] as bool? ?? false) == true)
+            {
+                st += "<p>You must log in first or <a href='/signup'>Sign Up</a></p>";
+                Session["fromcreate"] = null;
                 resultLiteral.Text = st;
             }
         }
