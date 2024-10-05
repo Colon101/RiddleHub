@@ -39,7 +39,7 @@ async function getRiddles() {
       createRiddle(
         riddleList[i].riddle_text,
         riddleList[i].answer,
-        riddleList[i].riddle_hint,
+        riddleList[i].riddle_hint
       );
     } else {
       createRiddle(riddleList[i].riddle_text, riddleList[i].answer);
@@ -50,35 +50,35 @@ async function getRiddles() {
 getRiddles().then(() => {
   createRiddle(
     "What is it that no one wants to have, but no one wants to lose, either?",
-    "A lawsuit",
+    "A lawsuit"
   );
 
   createRiddle(
     "What has two hands, a round face, always runs, yet always stays in place, too?",
     "A clock",
-    "TikTok",
+    "TikTok"
   );
   createRiddle(
     "I sit in the corner while traveling around the world. What am I?",
     "I’m a postage stamp!",
-    "Mail",
+    "Mail"
   );
   createRiddle(
     "How many sides does a circle have?",
     "Two – one inside and one outside!",
-    "Perspective",
+    "Perspective"
   );
   createRiddle(
     "What do silk and grass have in common?",
-    "They’re both sold by the yard!",
+    "They’re both sold by the yard!"
   );
   createRiddle(
     "If you know me, you'll want to share me. If you share me, Ill be gone. What am I?",
-    "A secret!",
+    "A secret!"
   );
   createRiddle(
     "I have no hands but can knock on your door, and you must open if I do. What am I?",
     "Opportunity.",
-    "Not a human",
+    "Not a human"
   );
 });
