@@ -26,12 +26,10 @@ window.addEventListener("message", (event) => {
     const contentElement = document.getElementById("content");
 
     contentElement.src = "home.aspx";
-  }
-  else if (event.data.trim().startsWith("LOG")) {
-      let msg = event.data.trim().substring(3).trim();
-      console.log("Relayed Message:"+msg)
-  }
-  else {
+  } else if (event.data.trim().startsWith("LOG")) {
+    let msg = event.data.trim().substring(3).trim();
+    console.log("Relayed Message:" + msg);
+  } else {
     if (typeof event.data == "string") {
       window.location.hash = "#" + event.data;
     }
