@@ -3,6 +3,7 @@
     <!DOCTYPE html>
 
     <html xmlns="http://www.w3.org/1999/xhtml">
+                <script src="iframe.js"></script>
 
     <head runat="server">
         <title></title>
@@ -73,7 +74,6 @@
                 </div>
             </div>
         </form>
-        <script src="iframe.js"></script>
         <script>
             let res = document.getElementById("signoutD").textContent.replaceAll("\n", "").trim()
             if (res == "reload") {

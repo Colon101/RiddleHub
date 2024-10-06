@@ -3,8 +3,10 @@
     <!DOCTYPE html>
 
     <html xmlns="http://www.w3.org/1999/xhtml">
+                <script src="iframe.js"></script>
 
     <head runat="server">
+        
         <title></title>
         <style>
             body {
@@ -73,7 +75,6 @@
                 </div>
             </div>
         </form>
-        <script src="iframe.js"></script>
         <script>relayMessage("signout")</script>
     </body>
 

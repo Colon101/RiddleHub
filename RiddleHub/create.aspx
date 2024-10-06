@@ -1,8 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="create.aspx.cs" Inherits="RiddleHub.Create" %>
 
     <!DOCTYPE html>
-
     <html xmlns="http://www.w3.org/1999/xhtml">
+        <script src="iframe.js"></script>
 
     <head runat="server">
         <meta charset="UTF-8">
@@ -89,7 +89,7 @@
                 <input type="submit" value="Create" class="btn">
             </form>
         </div>
-        <script src="iframe.js"></script>
+
         <script>
             relayMessage("create")
         </script>

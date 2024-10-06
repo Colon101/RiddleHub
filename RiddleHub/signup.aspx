@@ -3,6 +3,7 @@
     <!DOCTYPE html>
 
     <html xmlns="http://www.w3.org/1999/xhtml">
+    <script src="iframe.js"></script>
 
     <head runat="server">
         <meta charset="UTF-8">
@@ -90,8 +91,7 @@
 
             </form>
         </div>
-        <script src="iframe.js"></script>
-        d12
+
         <script>
             let res = document.getElementById("Result").textContent
             res = res.replaceAll("\n", "")

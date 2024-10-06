@@ -1,8 +1,9 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="my.aspx.cs" Inherits="My" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="my.aspx.cs" Inherits="RiddleHub.My" %>
 
     <!DOCTYPE html>
 
     <html xmlns="http://www.w3.org/1999/xhtml">
+                <script src="iframe.js"></script>
 
     <head runat="server">
         <meta charset="UTF-8">
@@ -78,7 +79,6 @@
                 </li>
             </ul>
         </div>
-        <script src="iframe.js"></script>
         <script>
             relayMessage("my")
         </script>
