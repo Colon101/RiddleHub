@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using UtilFunctions;
 
 namespace RiddleHub
@@ -12,6 +13,16 @@ namespace RiddleHub
             {
                 Session["permission"] = true;
                 Response.Redirect("/login");
+            }
+
+            if (Request.Form["submit"] == null)
+            {
+                return;
+            }
+            else
+            {
+                Debug.WriteLine(Request.Form["submit"] + Request.Form["riddle"] + Request.Form["hint"] + Request.Form["answer"]);
+
             }
         }
     }

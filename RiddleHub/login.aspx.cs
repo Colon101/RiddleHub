@@ -37,7 +37,7 @@ namespace RiddleHub
                     string query = "SELECT COUNT(*) FROM dbo.[user] WHERE email = @Email AND password = @Password;";
                     bool login = false;
 
-                    using (SqlConnection conn = Helper.ConnectToDb("Database.mdf"))
+                    using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
                     {
                         SqlCommand cmd = new SqlCommand(query, conn);
                         cmd.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar).Value = email;

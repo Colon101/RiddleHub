@@ -7,7 +7,7 @@ namespace UtilFunctions
 {
     class UtilFunctionsClass
     {
-        public const string DBConnString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Kfir\\Documents\\RiddleHub\\RiddleHub\\RiddleHub\\App_Data\\Database.mdf;Integrated Security=True";
+        public const string DBConnString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Kfir\\Documents\\RiddleHub\\RiddleHub\\RiddleHub\\App_Data\\db.mdf;Integrated Security=True";
         public static bool ValidateEmail(string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -51,7 +51,7 @@ namespace UtilFunctions
         {
             string query = @" SELECT username FROM dbo.[user] WHERE email = @Email";
             string username = null;
-            using (SqlConnection conn = Helper.ConnectToDb("Database.mdf"))
+            using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
             {
                 SqlCommand cmd = new SqlCommand(query, conn);
                 cmd.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar).Value = email;

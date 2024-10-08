@@ -75,9 +75,11 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\Database.mdf" />
-    <Content Include="App_Data\Database_log.ldf">
-      <DependentUpon>Database.mdf</DependentUpon>
+    <Content Include="App_Data\db.mdf" />
+    <Content Include="App_Data\dbo.riddle.sql" />
+    <Content Include="App_Data\dbo.user.sql" />
+    <Content Include="App_Data\db_log.ldf">
+      <DependentUpon>db.mdf</DependentUpon>
     </Content>
     <Content Include="connstring.aspx" />
     <Content Include="create.aspx" />

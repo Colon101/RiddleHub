@@ -7,7 +7,7 @@ namespace RiddleHub
         public string st;
         protected void Page_Load(object sender, EventArgs e)
         {
-            st += Helper.GenerateConnectionString("Database.mdf");
+            st += Helper.GenerateConnectionString("db.mdf");
             connString.Text = st;
         }
     }
