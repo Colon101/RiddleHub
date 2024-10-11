@@ -48,7 +48,7 @@ namespace RiddleHub
                 string query2 = "SELECT COUNT(*) FROM dbo.[user] WHERE email = @Email OR username = @Username;";
                 bool isAccountUsed = false;
 
-                using (SqlConnection conn = new SqlConnection(UtilFunctionsClass.DBConnString))
+                using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
                 {
                     SqlCommand cmd = new SqlCommand(query2, conn);
                     cmd.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar).Value = email;
@@ -68,7 +68,7 @@ namespace RiddleHub
                 else
                 {
                     string query = "INSERT INTO dbo.[user] (username, password, email) VALUES (@Username, @Password, @Email);";
-                    using (SqlConnection conn = new SqlConnection(UtilFunctionsClass.DBConnString))
+                    using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
                     {
                         SqlCommand cmd = new SqlCommand(query, conn);
                         cmd.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar).Value = username;

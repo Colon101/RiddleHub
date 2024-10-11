@@ -83,6 +83,7 @@
     </Content>
     <Content Include="connstring.aspx" />
     <Content Include="create.aspx" />
+    <Content Include="editriddle.aspx" />
     <Content Include="home.aspx" />
     <Content Include="home.js" />
     <Content Include="iframe.js" />
@@ -91,6 +92,7 @@
     <Content Include="login.aspx" />
     <Content Include="logo.png" />
     <Content Include="my.aspx" />
+    <Content Include="myriddles.aspx" />
     <Content Include="pagestyles.css" />
     <Content Include="riddles.aspx" />
     <Content Include="signout.aspx" />
@@ -110,6 +112,20 @@
     </Compile>
     <Compile Include="connstring.aspx.designer.cs">
       <DependentUpon>connstring.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="editriddle.aspx.cs">
+      <DependentUpon>editriddle.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="editriddle.aspx.designer.cs">
+      <DependentUpon>editriddle.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="myriddles.aspx.cs">
+      <DependentUpon>myriddles.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="myriddles.aspx.designer.cs">
+      <DependentUpon>myriddles.aspx</DependentUpon>
     </Compile>
     <Compile Include="riddles.aspx.cs">
       <DependentUpon>riddles.aspx</DependentUpon>

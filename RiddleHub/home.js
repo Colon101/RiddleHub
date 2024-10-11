@@ -30,7 +30,8 @@ function createRiddle(question, answer, hint) {
 async function getRiddles() {
   let req = await fetch("/riddles");
   let json = await req.json();
-  let riddleList = json.riddleList;
+    let riddleList = json.riddleList.toReversed();
+   
   for (let i = 0; i < riddleList.length; i++) {
     if (
       riddleList[i].riddle_hint !== null &&

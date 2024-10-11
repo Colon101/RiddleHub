@@ -5,10 +5,10 @@
 <script src="iframe.js"></script>
 
 <head runat="server">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Document</title>
-    <link rel="stylesheet" href="pagestyles.css">
+    <link rel="stylesheet" href="pagestyles.css"/>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,17 +76,17 @@
         <form class="riddle-form" action="create.aspx" method="post">
             <div class="form-group">
                 <label for="riddle">Riddle:</label>
-                <input type="text" name="riddle" id="riddleInput" class="form-control" required>
+                <input type="text" name="riddle" id="riddleInput" class="form-control" required="required"/>
             </div>
             <div class="form-group">
                 <label for="hint">Hint: (optional)</label>
-                <input type="text" name="hint" id="hintInput" class="form-control">
+                <input type="text" name="hint" id="hintInput" class="form-control"/>
             </div>
             <div class="form-group">
                 <label for="answer">Answer:</label>
-                <input type="text" name="answer" id="answerInput" class="form-control" required>
+                <input type="text" name="answer" id="answerInput" class="form-control" required="required"/>
             </div>
-            <input type="submit" value="Login" name="submit" class="btn">
+            <input type="submit" value="Create" name="submit" class="btn"/>
         </form>
     </div>
 

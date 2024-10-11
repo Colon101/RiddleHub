@@ -18,8 +18,6 @@ namespace RiddleHub
         public static string GenerateJson()
         {
             List<Riddle> riddleList = new List<Riddle>();
-
-            // Query now includes riddle_hint
             string query = @"
                 SELECT riddle_id, riddle_text, riddle_hint, answer, username
                 FROM dbo.[riddle]";

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using UtilFunctions;
 
 namespace RiddleHub
@@ -13,6 +14,7 @@ namespace RiddleHub
                 Session["permission"] = true;
                 Response.Redirect("/login");
             }
+            username.Text = Session["username"].ToString();
         }
     }
 }
