@@ -69,25 +69,26 @@
     <body>
 
         <div id="signupContainer" class="container">
-<form action="signup.aspx" method="post">
-    <div class="form-group">
-        <label for="username">Username:</label>
-        <input type="text" name="username" id="usernameInput" class="form-control" autocomplete="username">
-    </div>
-    <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="emailInput" class="form-control" autocomplete="email">
-    </div>
-    <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="passwordInput" class="form-control" autocomplete="new-password">
-        <div id="passwordFeedback" class="invalid-feedback"></div>
-    </div>
-    <button type="submit" name="submit" class="btn">Sign up</button>
-    <div id="Result">
-        <asp:Literal ID="resultLiteral" runat="server"></asp:Literal>
-    </div>
-</form>
+            <form action="signup.aspx" method="post">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" name="username" id="usernameInput" class="form-control" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" name="email" id="emailInput" class="form-control" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" name="password" id="passwordInput" class="form-control"
+                        autocomplete="new-password">
+                    <div id="passwordFeedback" class="invalid-feedback"></div>
+                </div>
+                <button type="submit" name="submit" class="btn">Sign up</button>
+                <div id="Result">
+                    <asp:Literal ID="resultLiteral" runat="server"></asp:Literal>
+                </div>
+            </form>
 
         </div>
 
