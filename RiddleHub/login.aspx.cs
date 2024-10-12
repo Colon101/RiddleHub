@@ -59,7 +59,7 @@ namespace RiddleHub
                     }
                     else
                     {
-
+                        Response.StatusCode = 401;
                         st += "<table dir='ltr' border='1'>";
                         st += "<tr><th style='color:red'>Error</th></tr>";
                         st += "<tr><td colspan='2'>Username or password is incorrect</td></tr>";
@@ -72,6 +72,7 @@ namespace RiddleHub
             }
             if ((Session["permission"] as bool? ?? false) == true)
             {
+                Response.StatusCode = 401;
                 st += "<p>You must log in first or <a href='/signup'>Sign Up</a></p>";
                 Session["fromcreate"] = null;
                 resultLiteral.Text = st;

@@ -23,13 +23,15 @@ namespace RiddleHub
             string username = Request.Form["username"];
             if (UtilFunctionsClass.ValidUserName(username))
             {
+                Response.StatusCode = 400;
                 st += "<table dir ='ltr' border ='1'>";
                 st += "<tr><th style='color:red'> Error </th></tr>";
-                st += $"<tr><td>Error:</td><td>Email or password not found</td></tr>";
+                st += $"<tr><td>Error:</td><td>Invalid Username</td></tr>";
                 st += "</table>";
             }
             else if (UtilFunctionsClass.ValidatePassword(password) != "Valid")
             {
+                Response.StatusCode = 400;
                 st += "<table dir ='ltr' border ='1'>";
                 st += "<tr><th style='color:red'> Error </th></tr>";
                 st += $"<tr><td>Error:</td><td>{UtilFunctionsClass.ValidatePassword(password)}</td></tr>";
@@ -37,6 +39,7 @@ namespace RiddleHub
             }
             else if (!UtilFunctionsClass.ValidateEmail(email))
             {
+                Response.StatusCode = 400;
                 st += "<table dir ='ltr' border ='1'>";
                 st += "<tr><th style='color:red'> Error </th></tr>";
                 st += $"<tr><td>Error:</td><td>Invalid Email</td></tr>";
@@ -64,6 +67,7 @@ namespace RiddleHub
                     st += "<tr><th style='color: red;'>Error</th></tr>";
                     st += $"<tr><td>Error</td><td>Username or Email is already in use</td></tr>";
                     st += "</table>";
+                    Response.StatusCode = 409;
                 }
                 else
                 {

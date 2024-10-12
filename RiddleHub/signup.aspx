@@ -72,16 +72,18 @@
             <form action="signup.aspx" method="post">
                 <div class="form-group">
                     <label for="username">Username:</label>
-                    <input type="text" name="username" id="usernameInput" class="form-control" autocomplete="username">
+                    <input type="text" name="username" id="usernameInput" class="form-control" autocomplete="username"
+                        required="required">
                 </div>
                 <div class="form-group">
                     <label for="email">Email:</label>
-                    <input type="email" name="email" id="emailInput" class="form-control" autocomplete="email">
+                    <input type="email" name="email" id="emailInput" class="form-control" autocomplete="email"
+                        required="required">
                 </div>
                 <div class="form-group">
                     <label for="password">Password:</label>
                     <input type="password" name="password" id="passwordInput" class="form-control"
-                        autocomplete="new-password">
+                        autocomplete="new-password" required="required">
                     <div id="passwordFeedback" class="invalid-feedback"></div>
                 </div>
                 <button type="submit" name="submit" class="btn">Sign up</button>
@@ -96,7 +98,7 @@
             let res = document.getElementById("Result").textContent
             res = res.replaceAll("\n", "")
             res = res.replaceAll(" ", "");
-            if (res !== "") {
+            if (res !== "" && !res.startsWith("Error")) {
                 relayMessage("reload")
             }
             relayMessage("signup")

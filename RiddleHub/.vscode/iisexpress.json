@@ -1,5 +1,5 @@
 {
-  "port": 30084,
+  "port": 8000,
   "path": "./",
   "clr": "v4.0",
   "protocol": "http"
