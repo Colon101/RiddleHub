@@ -16,7 +16,7 @@
             <div>
             </div>
         </form>
-        <script src="iframe.js">
+        <script src="iframe.js?v=20260305b">
         </script>
         <script>
             relayMessage("edit" + document.getElementById("riddleId").textContent.trim())

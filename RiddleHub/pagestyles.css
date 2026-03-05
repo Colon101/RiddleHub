@@ -1,9 +1,269 @@
 * {
-  font-family: "Roboto", sans-serif;
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
+
+:root {
+  --page-bg: #f4f4f4;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #d1d5db;
+  --shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --primary: #007bff;
+  --primary-hover: #0056b3;
+  --danger: #d9534f;
+  --danger-hover: #b52b27;
+  --link: #007bff;
+  --hint-bg: #eef2ff;
+  --hint-border: #c7d2fe;
+}
+
+html[data-theme="dark"] {
+  --page-bg: #0f172a;
+  --surface: #111827;
+  --surface-soft: #1f2937;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #374151;
+  --shadow: 0 10px 24px rgba(2, 6, 23, 0.35);
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --link: #60a5fa;
+  --hint-bg: #1e293b;
+  --hint-border: #334155;
+}
+
 html {
   overflow-y: auto;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: var(--page-bg);
+  color: var(--text);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text);
+  margin-top: 0;
+}
+
+p {
+  color: var(--text);
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.container,
+.page-card,
+.section,
+.riddle-card,
+.riddle-answer,
+.status,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select,
+.btn,
+button,
+a {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.container,
+.page-card {
+  margin: 36px auto 0;
+  padding: 20px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.page-subtitle,
+.muted {
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 16px;
+  color: var(--text);
+  background-color: var(--surface-soft);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.btn,
+button {
+  display: inline-block;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.btn:hover,
+button:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-danger {
+  background-color: var(--danger);
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-hover);
+}
+
+.section {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 18px;
+  background: var(--surface-soft);
+}
+
+.section-danger {
+  border-color: #fecaca;
+}
+
+.status {
+  margin-top: 12px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--hint-border);
+  background: var(--hint-bg);
+  color: var(--text);
+}
+
+.status.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+html[data-theme="dark"] .status.error {
+  background: #3b1115;
+  color: #fecaca;
+}
+
+.list-reset {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.loading {
+  display: none;
+  text-align: center;
+}
+
+.riddle-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.riddle-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  padding: 14px;
+}
+
+.riddle-card h3 {
+  margin: 0 0 8px;
+}
+
+.riddle-meta {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.riddle-answer {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--hint-border);
+  background: var(--hint-bg);
+  margin-bottom: 12px;
+}
+
+.riddle-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.center {
+  text-align: center;
+}
+
+.center img {
+  max-width: 120px;
+}
+
+@media (max-width: 720px) {
+  .container,
+  .page-card {
+    margin-top: 22px;
+    padding: 16px;
+    border-radius: 8px;
+  }
 }

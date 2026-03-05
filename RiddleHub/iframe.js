@@ -2,6 +2,26 @@
 window.addEventListener("click", () => {
   parent.postMessage("clickedInsideIframe", "*");
 });
+
+const THEME_STORAGE_KEY = "riddlehub-theme";
+
+function safeTheme(themeName) {
+  return themeName === "dark" ? "dark" : "light";
+}
+
+function applyTheme(themeName) {
+  const nextTheme = safeTheme(themeName);
+  document.documentElement.setAttribute("data-theme", nextTheme);
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+}
+
+function applyStoredTheme() {
+  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  applyTheme(storedTheme);
+}
+
+applyStoredTheme();
+
 function relayMessage(message) {
   parent.postMessage(message, "*");
 }
@@ -49,8 +69,22 @@ function relayAuthState() {
   }
   relaySessionBridge();
 }
+
+window.addEventListener("message", (event) => {
+  if (typeof event.data !== "string") {
+    return;
+  }
+  if (event.data.startsWith("THEME")) {
+    applyTheme(event.data.substring("THEME".length).trim());
+  }
+});
+
 if (!isInIframe()) {
   window.location.assign("/#" + whatsMyUrl());
 } else {
-  window.addEventListener("DOMContentLoaded", relayAuthState);
+  window.addEventListener("DOMContentLoaded", () => {
+    applyStoredTheme();
+    relayAuthState();
+    relayMessage("REQTHEME");
+  });
 }
