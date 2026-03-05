@@ -40,6 +40,9 @@ MSBUILD_CMD=""
 if has_cmd msbuild; then
   MSBUILD_CMD="msbuild"
 elif has_cmd xbuild; then
+if command -v msbuild >/dev/null 2>&1; then
+  MSBUILD_CMD="msbuild"
+elif command -v xbuild >/dev/null 2>&1; then
   MSBUILD_CMD="xbuild"
 else
   fail "Missing build tool. Install mono-msbuild or mono-xbuild (pacman package: mono-msbuild)."
@@ -62,6 +65,7 @@ fi
 echo "Detected Linux hosting stack: $HOST_STACK"
 
 if has_cmd docker; then
+if command -v docker >/dev/null 2>&1; then
   HAS_DOCKER=1
   echo "Found optional tool: docker"
 else
@@ -81,6 +85,7 @@ if [[ "$HAS_DOCKER" -eq 1 ]]; then
 Bootstrap succeeded.
 
 Run commands (SQL Server in Docker):
+Run commands (SQL Server in Docker + Mono xsp4):
   docker run -d --name riddlehub-sql \
     -e ACCEPT_EULA=Y \
     -e MSSQL_SA_PASSWORD='Your_strong_Password123' \
