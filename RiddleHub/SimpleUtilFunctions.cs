@@ -8,32 +8,39 @@ namespace UtilFunctions
     class UtilFunctionsClass
     {
         public const string DBConnString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Kfir\\Documents\\RiddleHub\\RiddleHub\\RiddleHub\\App_Data\\db.mdf;Integrated Security=True";
+
         public static bool ValidateEmail(string email)
         {
-            if (string.IsNullOrEmpty(email))
+            if (string.IsNullOrWhiteSpace(email))
             {
                 return false;
             }
 
             // Validate using regex for simplicity and thoroughness
             var emailRegex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return Regex.IsMatch(email, emailRegex);
+            return Regex.IsMatch(email.Trim(), emailRegex);
         }
+
         public static string ValidatePassword(string password)
         {
-
             if (string.IsNullOrEmpty(password)) return "Password is Empty";
-            if (password.Length <= 8) return "Password is too short (8 characters or more)";
+            if (password.Length < 8) return "Password is too short (8 characters or more)";
             if (!password.Any(char.IsDigit)) return "Password requires at least one digit";
             if (!password.Any(char.IsUpper)) return "Password requires at least one uppercase character";
             return "Valid";
         }
+
         public static bool ValidUserName(string username)
         {
-            string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_";
-            foreach (char c in username) if (validChars.Contains(c)) return false;
-            return true;
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return false;
+            }
+
+            const string userNamePattern = "^[A-Za-z0-9_]+$";
+            return Regex.IsMatch(username.Trim(), userNamePattern);
         }
+
         public static bool IsLoggedIn(HttpSessionState session)
         {
             if (session["email"] == null) return false;

@@ -18,10 +18,12 @@ namespace RiddleHub
             {
                 return;
             }
-            string email = Request.Form["email"];
+            string email = (Request.Form["email"] ?? string.Empty).Trim();
             string password = Request.Form["password"];
-            string username = Request.Form["username"];
-            if (UtilFunctionsClass.ValidUserName(username))
+            string username = (Request.Form["username"] ?? string.Empty).Trim();
+            string passwordValidation = UtilFunctionsClass.ValidatePassword(password);
+
+            if (!UtilFunctionsClass.ValidUserName(username))
             {
                 Response.StatusCode = 400;
                 st += "<table dir ='ltr' border ='1'>";
@@ -29,12 +31,12 @@ namespace RiddleHub
                 st += $"<tr><td>Error:</td><td>Invalid Username</td></tr>";
                 st += "</table>";
             }
-            else if (UtilFunctionsClass.ValidatePassword(password) != "Valid")
+            else if (passwordValidation != "Valid")
             {
                 Response.StatusCode = 400;
                 st += "<table dir ='ltr' border ='1'>";
                 st += "<tr><th style='color:red'> Error </th></tr>";
-                st += $"<tr><td>Error:</td><td>{UtilFunctionsClass.ValidatePassword(password)}</td></tr>";
+                st += $"<tr><td>Error:</td><td>{passwordValidation}</td></tr>";
                 st += "</table>";
             }
             else if (!UtilFunctionsClass.ValidateEmail(email))
@@ -89,9 +91,9 @@ namespace RiddleHub
                     Session["password"] = password;
 
                 }
-
-                resultLiteral.Text = st;
             }
+
+            resultLiteral.Text = st;
         }
     }
 }
