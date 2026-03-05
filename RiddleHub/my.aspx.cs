@@ -10,8 +10,9 @@ namespace RiddleHub
             bool loggedIn = UtilFunctionsClass.IsLoggedIn(Session);
             if (!loggedIn)
             {
-                Session["permission"] = true;
-                Response.Redirect("/login");
+                Session["login_required"] = true;
+                Response.Redirect("/login.aspx?return=my&required=1");
+                return;
             }
             username.Text = Convert.ToString(Session["username"]) ?? string.Empty;
         }

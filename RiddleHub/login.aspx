@@ -87,24 +87,10 @@
         </div>
 
         <script>
-            function getTextBetweenQuotes(str) {
-                let start = str.indexOf("'");
-                if (start === -1) return null;  // No single quote found
-
-                let end = str.indexOf("'", start + 1);
-                if (end === -1) return null;  // No closing single quote found
-
-                return str.slice(start + 1, end);
-            }
-
-
-            relayMessage("login")
-            let res = document.getElementById("Result").textContent
-            res = res.replaceAll("\n", "")
-            res = res.trim();
-            if (res.startsWith("Success")) {
-                let arr = res.split(" ");
-                const userName = getTextBetweenQuotes(res);
+            const loginSucceeded = <%= LoginSucceeded ? "true" : "false" %>;
+            const userName = "<%= System.Web.HttpUtility.JavaScriptStringEncode(LoggedInUsername ?? string.Empty) %>";
+            relayMessage("login");
+            if (loginSucceeded && userName.length > 0) {
                 relayMessage("USER" + userName)
                 relayMessage("AUTHSTATE" + JSON.stringify({ loggedIn: true, username: userName }))
                 let returnPage = document.getElementById('returnPage').textContent.trim() || 'my';

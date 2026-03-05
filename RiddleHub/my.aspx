@@ -100,7 +100,7 @@
             showLoading();
             const req = await fetch('/myriddles');
             if (req.status === 401) {
-                window.location.assign('/login.aspx?return=my');
+                window.location.assign('/login.aspx?return=my&required=1');
                 return;
             }
             const json = await req.json();

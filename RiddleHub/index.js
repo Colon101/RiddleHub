@@ -5,6 +5,11 @@ window.addEventListener("click", (event) => {
     }
 });
 
+let authState = {
+    loggedIn: false,
+    username: ""
+};
+
 function normalizePage(pageName) {
     const validPages = new Set(["home", "create", "my", "account", "login", "signup", "signout"]);
     if (!pageName || !validPages.has(pageName)) {
@@ -23,10 +28,12 @@ function currentHashPage() {
 function updateNavForAuth(isLoggedIn, username) {
     const loginLink = document.getElementById("login");
     const signupLink = document.getElementById("signup");
+    authState.loggedIn = !!isLoggedIn;
+    authState.username = username || "";
 
-    if (isLoggedIn) {
-        loginLink.textContent = "Hi! " + username;
-        signupLink.textContent = "Account";
+    if (authState.loggedIn) {
+        loginLink.textContent = authState.username;
+        signupLink.textContent = "Sign Out";
     } else {
         loginLink.textContent = "Login";
         signupLink.textContent = "Sign Up";
@@ -94,16 +101,16 @@ document.querySelectorAll(".pages").forEach((page) => {
         const pageid = page.id === "homeIcon" ? "home" : page.id;
         const contentElement = document.getElementById("content");
 
-        if (page.textContent.trim().startsWith("Hi!")) {
-            contentElement.src = "my.aspx";
-            window.location.hash = "#my";
+        if (authState.loggedIn && pageid === "login") {
+            contentElement.src = "account.aspx";
+            window.location.hash = "#account";
             hideNav();
             return;
         }
 
-        if (page.textContent.trim() === "Account") {
-            contentElement.src = "account.aspx";
-            window.location.hash = "#account";
+        if (authState.loggedIn && pageid === "signup") {
+            contentElement.src = "signout.aspx";
+            window.location.hash = "#signout";
             hideNav();
             return;
         }
@@ -116,10 +123,6 @@ document.querySelectorAll(".pages").forEach((page) => {
         }
 
         hideNav();
-        if (page.textContent.trim() === "Sign Out") {
-            contentElement.src = "signout.aspx";
-            window.location.hash = "#signout";
-        }
     });
 });
 

@@ -16,8 +16,8 @@ namespace RiddleHub
         {
             if (!UtilFunctionsClass.IsLoggedIn(Session))
             {
-                Session["permission"] = true;
-                Response.Redirect("/login.aspx?return=account");
+                Session["login_required"] = true;
+                Response.Redirect("/login.aspx?return=account&required=1");
                 return;
             }
 
@@ -25,7 +25,8 @@ namespace RiddleHub
             if (string.IsNullOrWhiteSpace(currentUsername))
             {
                 UtilFunctionsClass.LogOut(Session);
-                Response.Redirect("/login.aspx?return=account");
+                Session["login_required"] = true;
+                Response.Redirect("/login.aspx?return=account&required=1");
                 return;
             }
 
