@@ -28,23 +28,33 @@ function createRiddle(question, answer, hint) {
   document.getElementById("Riddles").appendChild(questionLi);
 }
 async function getRiddles() {
-  let req = await fetch("/riddles");
-  let json = await req.json();
-  let riddleList = json.riddleList.toReversed();
-
-  for (let i = 0; i < riddleList.length; i++) {
-    if (
-      riddleList[i].riddle_hint !== null &&
-      riddleList[i].riddle_hint !== undefined
-    ) {
-      createRiddle(
-        riddleList[i].riddle_text,
-        riddleList[i].answer,
-        riddleList[i].riddle_hint
-      );
-    } else {
-      createRiddle(riddleList[i].riddle_text, riddleList[i].answer);
+  try {
+    let req = await fetch("/riddles");
+    if (!req.ok) {
+      throw new Error("Failed to fetch riddles: HTTP " + req.status);
     }
+
+    let json = await req.json();
+    let riddleList = Array.isArray(json.riddleList)
+      ? [...json.riddleList].reverse()
+      : [];
+
+    for (let i = 0; i < riddleList.length; i++) {
+      if (
+        riddleList[i].riddle_hint !== null &&
+        riddleList[i].riddle_hint !== undefined
+      ) {
+        createRiddle(
+          riddleList[i].riddle_text,
+          riddleList[i].answer,
+          riddleList[i].riddle_hint
+        );
+      } else {
+        createRiddle(riddleList[i].riddle_text, riddleList[i].answer);
+      }
+    }
+  } catch (err) {
+    console.error(err);
   }
 }
 

@@ -81,9 +81,12 @@
     <Content Include="App_Data\db_log.ldf">
       <DependentUpon>db.mdf</DependentUpon>
     </Content>
+    <Content Include="admin.aspx" />
     <Content Include="connstring.aspx" />
     <Content Include="create.aspx" />
+    <Content Include="Default.aspx" />
     <Content Include="editriddle.aspx" />
+    <Content Include="Global.asax" />
     <Content Include="home.aspx" />
     <Content Include="home.js" />
     <Content Include="iframe.js" />
@@ -106,6 +109,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Data\Helper.cs" />
+    <Compile Include="admin.aspx.cs">
+      <DependentUpon>admin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="connstring.aspx.cs">
       <DependentUpon>connstring.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
