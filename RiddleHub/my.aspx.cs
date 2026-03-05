@@ -13,7 +13,7 @@ namespace RiddleHub
                 Session["permission"] = true;
                 Response.Redirect("/login");
             }
-            username.Text = Session["username"].ToString();
+            username.Text = Convert.ToString(Session["username"]) ?? string.Empty;
         }
     }
 }

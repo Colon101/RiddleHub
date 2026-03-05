@@ -81,6 +81,7 @@
     <Content Include="App_Data\db_log.ldf">
       <DependentUpon>db.mdf</DependentUpon>
     </Content>
+    <Content Include="account.aspx" />
     <Content Include="admin.aspx" />
     <Content Include="connstring.aspx" />
     <Content Include="create.aspx" />
@@ -109,6 +110,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Data\Helper.cs" />
+    <Compile Include="account.aspx.cs">
+      <DependentUpon>account.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="account.aspx.designer.cs">
+      <DependentUpon>account.aspx</DependentUpon>
+    </Compile>
     <Compile Include="admin.aspx.cs">
       <DependentUpon>admin.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

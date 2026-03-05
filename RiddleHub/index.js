@@ -6,7 +6,7 @@ window.addEventListener("click", (event) => {
 });
 
 function normalizePage(pageName) {
-    const validPages = new Set(["home", "create", "my", "login", "signup", "signout"]);
+    const validPages = new Set(["home", "create", "my", "account", "login", "signup", "signout"]);
     if (!pageName || !validPages.has(pageName)) {
         return "home";
     }
@@ -102,8 +102,8 @@ document.querySelectorAll(".pages").forEach((page) => {
         }
 
         if (page.textContent.trim() === "Account") {
-            contentElement.src = "my.aspx#account";
-            window.location.hash = "#my";
+            contentElement.src = "account.aspx";
+            window.location.hash = "#account";
             hideNav();
             return;
         }

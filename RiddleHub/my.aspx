@@ -43,7 +43,7 @@
     </div>
     <script>
         relayMessage("my");
-        document.getElementById('manageBtn').addEventListener('click', () => { window.location.href = '/my.aspx#account'; });
+        document.getElementById('manageBtn').addEventListener('click', () => { window.location.href = '/account.aspx'; });
         document.getElementById('signoutBtn').addEventListener('click', () => { window.location.href = '/signout.aspx'; });
 
         function showLoading() { document.getElementById('loading').style.display = 'block'; document.getElementById('emptyMessage').style.display = 'none'; document.getElementById('createMessage').style.display = 'none'; }
@@ -98,7 +98,11 @@
 
         async function loadRiddles() {
             showLoading();
-            const req = await fetch('/myriddles?username=' + document.getElementById('usernametxt').textContent.trim());
+            const req = await fetch('/myriddles');
+            if (req.status === 401) {
+                window.location.assign('/login.aspx?return=my');
+                return;
+            }
             const json = await req.json();
             let found = true;
             try { var riddleArr = json.userRiddles.toReversed(); } catch { found = false; }

@@ -107,6 +107,7 @@ namespace RiddleHub
                 case "home":
                 case "create":
                 case "my":
+                case "account":
                     return page.Trim().ToLowerInvariant();
                 default:
                     return "my";
