@@ -1,0 +1,23 @@
+# Example Apache + mod_mono site for RiddleHub (adjust paths for your machine)
+# Save as e.g. /etc/httpd/conf/extra/riddlehub.conf and include it from httpd.conf.
+
+# LoadModule mono_module modules/mod_mono.so
+# Include conf/extra/riddlehub.conf
+
+Listen 8080
+
+<VirtualHost *:8080>
+    ServerName localhost
+    DocumentRoot "/workspace/RiddleHub/RiddleHub"
+
+    MonoServerPath riddlehub "/usr/bin/mod-mono-server4"
+    MonoApplications riddlehub "/:/workspace/RiddleHub/RiddleHub"
+    MonoSetEnv riddlehub RIDDLEHUB_CONNECTION_NAME=LinuxSqlServerDev
+
+    <Directory "/workspace/RiddleHub/RiddleHub">
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    AddType application/x-asp-net .aspx .ashx .asmx .ascx .config .cs
+</VirtualHost>
