@@ -1,5 +1,6 @@
 
 using System;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Web;
@@ -12,28 +13,68 @@ using System.Web;
 
 public class Helper
 {
+    private const string DefaultConnectionName = "WindowsDevLocalDb";
+    private const string ConnectionNameAppSettingKey = "RiddleHubConnectionStringName";
+    private const string ConnectionNameEnvironmentVariable = "RIDDLEHUB_CONNECTION_NAME";
+
     public static SqlConnection ConnectToDb(string fileName)
     {
-        string path = HttpContext.Current.Server.MapPath("App_Data/") + fileName;
-        //string connString = @"Data Source=.\SQLEXPRESS;AttachDbFileName=" + path + ";Integrated Security=True;User Instance=True";
-        //string connString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = |DataDirectory|\" + fileName + " Integrated Security = True";
-        //string connString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = " + path + " Integrated Security = True";
-
-        //string connString = @"";
-
-        string connString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=" + path + ";Integrated Security=True;Connect Timeout=30";
-
+        string connString = BuildConnectionString(fileName);
         SqlConnection conn = new SqlConnection(connString);
         return conn;
     }
 
     public static string GenerateConnectionString(string fileName)
     {
-
-        string path = HttpContext.Current.Server.MapPath("App_Data/") + fileName;
-
-        return @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=" + path + ";Integrated Security=True;Connect Timeout=30";
+        return BuildConnectionString(fileName);
     }
+
+    private static string BuildConnectionString(string fileName)
+    {
+        string connectionName = ResolveConnectionName();
+        ConnectionStringSettings settings = ConfigurationManager.ConnectionStrings[connectionName];
+
+        if (settings == null || string.IsNullOrWhiteSpace(settings.ConnectionString))
+        {
+            throw new ConfigurationErrorsException(
+                "Missing or empty connection string '" + connectionName + "'. Add it under <connectionStrings> in Web.config.");
+        }
+
+        string connectionString = settings.ConnectionString;
+        string appDataPath = HttpContext.Current.Server.MapPath("App_Data/");
+
+        connectionString = connectionString.Replace("|DataDirectory|", appDataPath.TrimEnd('\\', '/'));
+
+        if (connectionString.Contains("{AppDataPath}"))
+        {
+            connectionString = connectionString.Replace("{AppDataPath}", appDataPath.TrimEnd('\\', '/'));
+        }
+
+        if (connectionString.Contains("{DatabaseFileName}"))
+        {
+            connectionString = connectionString.Replace("{DatabaseFileName}", fileName);
+        }
+
+        return connectionString;
+    }
+
+    private static string ResolveConnectionName()
+    {
+        string environmentName = Environment.GetEnvironmentVariable(ConnectionNameEnvironmentVariable);
+        if (!string.IsNullOrWhiteSpace(environmentName))
+        {
+            return environmentName.Trim();
+        }
+
+        string configuredName = ConfigurationManager.AppSettings[ConnectionNameAppSettingKey];
+        if (!string.IsNullOrWhiteSpace(configuredName))
+        {
+            return configuredName.Trim();
+        }
+
+        return DefaultConnectionName;
+    }
+
     public static void DoQuery(string fileName, string sql)
     {
         SqlConnection conn = ConnectToDb(fileName);
