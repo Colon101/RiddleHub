@@ -25,6 +25,8 @@ This script validates required tools (`mono`, `msbuild`/`xbuild`, `nuget`) and e
 
 It also restores packages, builds the solution, and prints exact run commands.
 
+Optional: set `RIDDLEHUB_APACHE_CONF=/etc/httpd/conf/extra/riddlehub.conf` so bootstrap/run can verify your Apache vhost file exists.
+
 ### 2) Start the app on Linux
 Use the Linux SQL Server profile and run:
 
@@ -40,7 +42,7 @@ Host selection options:
 ./scripts/run-linux.sh
 
 # force Apache + mod_mono
-RIDDLEHUB_SERVER=apache-mod_mono ./scripts/run-linux.sh
+RIDDLEHUB_APACHE_CONF=/etc/httpd/conf/extra/riddlehub.conf RIDDLEHUB_SERVER=apache-mod_mono ./scripts/run-linux.sh
 
 # force xsp4 fallback (legacy)
 RIDDLEHUB_SERVER=xsp4 PORT=8080 ./scripts/run-linux.sh
@@ -53,3 +55,7 @@ Connection profiles are in `RiddleHub/Web.config`:
 - `LinuxSqlServerDev`: SQL Server login for Linux dev (container or external SQL Server)
 
 If you use Docker, `bootstrap-arch.sh` prints a ready-to-run `docker run` command for SQL Server.
+
+
+### 4) Apache vhost template
+A starter config is included at `scripts/apache-riddlehub.conf.example`. Copy and adapt paths/user as needed.

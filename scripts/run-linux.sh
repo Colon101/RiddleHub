@@ -20,6 +20,7 @@ mono_module_loaded() {
 export RIDDLEHUB_CONNECTION_NAME="${RIDDLEHUB_CONNECTION_NAME:-LinuxSqlServerDev}"
 PORT="${PORT:-8080}"
 RIDDLEHUB_SERVER="${RIDDLEHUB_SERVER:-auto}"
+APACHE_CONF="${RIDDLEHUB_APACHE_CONF:-}"
 
 if [[ "$RIDDLEHUB_SERVER" == "auto" ]]; then
   if mono_module_loaded; then
@@ -43,7 +44,15 @@ case "$RIDDLEHUB_SERVER" in
   apache-mod_mono)
     has_cmd apachectl || fail "apachectl is required for apache-mod_mono mode."
     mono_module_loaded || fail "Apache mono_module is not loaded. Enable mod_mono in Apache first."
-    echo "Using Apache + mod_mono. Ensure your Apache vhost points to: $APP_DIR"
+    if [[ -n "$APACHE_CONF" && ! -f "$APACHE_CONF" ]]; then
+      fail "RIDDLEHUB_APACHE_CONF points to missing file: $APACHE_CONF"
+    fi
+    if [[ -z "$APACHE_CONF" ]]; then
+      echo "WARN: RIDDLEHUB_APACHE_CONF is not set; ensure your Apache vhost is configured for: $APP_DIR"
+      echo "      Example template: scripts/apache-riddlehub.conf.example"
+    else
+      echo "Using Apache config file: $APACHE_CONF"
+    fi
     exec apachectl -DFOREGROUND
     ;;
   xsp4)

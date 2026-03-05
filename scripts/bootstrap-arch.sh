@@ -23,6 +23,16 @@ mono_module_loaded() {
   has_cmd apachectl && apachectl -M 2>/dev/null | grep -qi 'mono_module'
 }
 
+apache_vhost_hint() {
+  local conf="${RIDDLEHUB_APACHE_CONF:-}"
+  if [[ -n "$conf" ]]; then
+    [[ -f "$conf" ]] || fail "RIDDLEHUB_APACHE_CONF points to missing file: $conf"
+  else
+    echo "WARN: RIDDLEHUB_APACHE_CONF is not set; bootstrap cannot verify your RiddleHub Apache vhost file."
+    echo "      See scripts/apache-riddlehub.conf.example for a template."
+  fi
+}
+
 echo "==> Validating prerequisites"
 need_cmd mono "Install with: sudo pacman -S mono"
 
@@ -41,6 +51,7 @@ need_cmd nuget "Install with: sudo pacman -S nuget"
 HOST_STACK=""
 if mono_module_loaded; then
   HOST_STACK="apache-mod_mono"
+  apache_vhost_hint
 elif has_cmd xsp4; then
   HOST_STACK="xsp4-legacy"
   echo "WARN: xsp4 detected. Upstream mono/xsp is archived; treat xsp4 as legacy/dev-only fallback."
