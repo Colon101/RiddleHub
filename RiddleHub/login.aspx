@@ -67,6 +67,8 @@
     </head>
 
     <body>
+        <div id="sessionBridge" style="display:none" data-loggedin="<%= UtilFunctions.UtilFunctionsClass.IsLoggedIn(Session).ToString().ToLowerInvariant() %>" data-username="<%= Session["username"] ?? "" %>"></div>
+        <div id="returnPage" style="display:none"><%= ReturnPage %></div>
         <div id="loginContainer" class="container">
             <form action="login.aspx" method="post" runat="server">
                 <div class="form-group">
@@ -102,8 +104,11 @@
             res = res.trim();
             if (res.startsWith("Success")) {
                 let arr = res.split(" ");
-                relayMessage("USER" + getTextBetweenQuotes(res))
-                window.location.assign('/my.aspx');
+                const userName = getTextBetweenQuotes(res);
+                relayMessage("USER" + userName)
+                relayMessage("AUTHSTATE" + JSON.stringify({ loggedIn: true, username: userName }))
+                let returnPage = document.getElementById('returnPage').textContent.trim() || 'my';
+                window.location.assign('/' + returnPage + '.aspx');
             }
         </script>
     </body>

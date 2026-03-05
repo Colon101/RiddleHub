@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.SqlClient;
 using UtilFunctions;
 namespace RiddleHub
@@ -6,30 +6,28 @@ namespace RiddleHub
     public partial class Login : System.Web.UI.Page
     {
         public string st;
+        public string ReturnPage;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-
-
-
+            ReturnPage = SafeReturnPage(Request.Params["return"]);
 
             if (Request.Form["submit"] != null)
             {
-
-
                 string email = Request.Form["username"];
                 string password = Request.Form["password"];
                 if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
                 {
                     st += "<table dir ='ltr' border ='1'>";
                     st += "<tr><th style='color:red'> Error </th></tr>";
-                    st += $"<tr><td>Error:</td><td>Email or password not found</td></tr>";
+                    st += "<tr><td>Error:</td><td>Email or password not found</td></tr>";
                     st += "</table>";
                 }
                 else if (!UtilFunctionsClass.ValidateEmail(email))
                 {
                     st += "<table dir ='ltr' border ='1'>";
                     st += "<tr><th style='color:red'> Error </th></tr>";
-                    st += $"<tr><td>Error:</td><td>invalid email</td></tr>";
+                    st += "<tr><td>Error:</td><td>invalid email</td></tr>";
                     st += "</table>";
                 }
                 else
@@ -49,13 +47,13 @@ namespace RiddleHub
 
                     if (login)
                     {
+                        string username = UtilFunctionsClass.GetUsernameFromEmail(email);
                         st += "<table dir='ltr' border='1'>";
-                        st += $"<tr><th style='color:green'>Success '{UtilFunctionsClass.GetUsernameFromEmail(email)}'</th></tr>";
+                        st += $"<tr><th style='color:green'>Success '{username}'</th></tr>";
                         st += "</table>";
-                        Session["username"] = UtilFunctionsClass.GetUsernameFromEmail(email);
+                        Session["username"] = username;
                         Session["email"] = email;
                         Session["password"] = password;
-
                     }
                     else
                     {
@@ -65,7 +63,6 @@ namespace RiddleHub
                         st += "<tr><td colspan='2'>Username or password is incorrect</td></tr>";
                         st += "</table>";
                     }
-
                 }
 
                 resultLiteral.Text = st;
@@ -79,5 +76,17 @@ namespace RiddleHub
             }
         }
 
+        private string SafeReturnPage(string page)
+        {
+            switch ((page ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "home":
+                case "create":
+                case "my":
+                    return page.Trim().ToLowerInvariant();
+                default:
+                    return "my";
+            }
+        }
     }
 }

@@ -14,6 +14,19 @@ function whatsMyUrl() {
 function isInIframe() {
   return window.self !== window.top;
 }
+function relaySessionBridge() {
+  const bridge = document.getElementById("sessionBridge");
+  if (!bridge) {
+    return;
+  }
+  const payload = {
+    loggedIn: bridge.dataset.loggedin === "true",
+    username: bridge.dataset.username || ""
+  };
+  relayMessage("AUTHSTATE" + JSON.stringify(payload));
+}
 if (!isInIframe()) {
   window.location.assign("/#" + whatsMyUrl());
+} else {
+  window.addEventListener("DOMContentLoaded", relaySessionBridge);
 }

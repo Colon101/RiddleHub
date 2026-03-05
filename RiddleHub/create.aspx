@@ -71,6 +71,7 @@
     </head>
 
     <body>
+        <div id="sessionBridge" style="display:none" data-loggedin="<%= UtilFunctions.UtilFunctionsClass.IsLoggedIn(Session).ToString().ToLowerInvariant() %>" data-username="<%= Session["username"] ?? "" %>"></div>
         <div id="riddleCreator" class="container">
             <h1>Create a Riddle</h1>
             <form class="riddle-form" action="create.aspx" method="post">

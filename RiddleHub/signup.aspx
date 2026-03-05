@@ -68,6 +68,8 @@
 
     <body>
 
+        <div id="sessionBridge" style="display:none" data-loggedin="<%= UtilFunctions.UtilFunctionsClass.IsLoggedIn(Session).ToString().ToLowerInvariant() %>" data-username="<%= Session["username"] ?? "" %>"></div>
+        <div id="returnPage" style="display:none"><%= ReturnPage %></div>
         <div id="signupContainer" class="container">
             <form action="signup.aspx" method="post">
                 <div class="form-group">
@@ -99,7 +101,10 @@
             res = res.replaceAll("\n", "")
             res = res.replaceAll(" ", "");
             if (res !== "" && !res.startsWith("Error")) {
-                relayMessage("reload")
+                const userName = document.getElementById('usernameInput').value.trim();
+                relayMessage("AUTHSTATE" + JSON.stringify({ loggedIn: true, username: userName }));
+                let returnPage = document.getElementById('returnPage').textContent.trim() || 'my';
+                window.location.assign('/' + returnPage + '.aspx');
             }
             relayMessage("signup")
             document.getElementById('passwordInput').addEventListener('input', function () {

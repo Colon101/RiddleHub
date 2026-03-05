@@ -61,6 +61,7 @@
     </head>
 
     <body>
+        <div id="sessionBridge" style="display:none" data-loggedin="<%= UtilFunctions.UtilFunctionsClass.IsLoggedIn(Session).ToString().ToLowerInvariant() %>" data-username="<%= Session["username"] ?? "" %>"></div>
         <div id="availableRiddlesContainer" class="container">
             <h1>Available Riddles</h1>
             <ul id="Riddles">

@@ -7,9 +7,12 @@ namespace RiddleHub
     public partial class signup : System.Web.UI.Page
     {
         public string st;
+        public string ReturnPage;
         protected void Page_Load(object sender, EventArgs e)
         {
             bool loggedin = UtilFunctionsClass.IsLoggedIn(Session);
+            ReturnPage = SafeReturnPage(Request.Params["return"]);
+
             if (loggedin)
             {
                 Response.Redirect("/my.aspx");
@@ -18,6 +21,7 @@ namespace RiddleHub
             {
                 return;
             }
+
             string email = (Request.Form["email"] ?? string.Empty).Trim();
             string password = Request.Form["password"];
             string username = (Request.Form["username"] ?? string.Empty).Trim();
@@ -28,7 +32,7 @@ namespace RiddleHub
                 Response.StatusCode = 400;
                 st += "<table dir ='ltr' border ='1'>";
                 st += "<tr><th style='color:red'> Error </th></tr>";
-                st += $"<tr><td>Error:</td><td>Invalid Username</td></tr>";
+                st += "<tr><td>Error:</td><td>Invalid Username</td></tr>";
                 st += "</table>";
             }
             else if (passwordValidation != "Valid")
@@ -44,12 +48,11 @@ namespace RiddleHub
                 Response.StatusCode = 400;
                 st += "<table dir ='ltr' border ='1'>";
                 st += "<tr><th style='color:red'> Error </th></tr>";
-                st += $"<tr><td>Error:</td><td>Invalid Email</td></tr>";
+                st += "<tr><td>Error:</td><td>Invalid Email</td></tr>";
                 st += "</table>";
             }
             else
             {
-
                 string query2 = "SELECT COUNT(*) FROM dbo.[user] WHERE email = @Email OR username = @Username;";
                 bool isAccountUsed = false;
 
@@ -63,11 +66,12 @@ namespace RiddleHub
                     int count = (int)cmd.ExecuteScalar();
                     isAccountUsed = count > 0;
                 }
+
                 if (isAccountUsed)
                 {
                     st += "<table dir ='ltr' border ='1'>";
                     st += "<tr><th style='color: red;'>Error</th></tr>";
-                    st += $"<tr><td>Error</td><td>Username or Email is already in use</td></tr>";
+                    st += "<tr><td>Error</td><td>Username or Email is already in use</td></tr>";
                     st += "</table>";
                     Response.StatusCode = 409;
                 }
@@ -83,17 +87,30 @@ namespace RiddleHub
                         conn.Open();
                         cmd.ExecuteNonQuery();
                     }
+
                     st += "<table dir ='ltr' border ='1'>";
                     st += "<tr><th>Success</th></tr>";
                     st += "</table>";
                     Session["username"] = username;
                     Session["email"] = email;
                     Session["password"] = password;
-
                 }
             }
 
             resultLiteral.Text = st;
+        }
+
+        private string SafeReturnPage(string page)
+        {
+            switch ((page ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "home":
+                case "create":
+                case "my":
+                    return page.Trim().ToLowerInvariant();
+                default:
+                    return "my";
+            }
         }
     }
 }
