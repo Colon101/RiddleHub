@@ -3,72 +3,27 @@
     <!DOCTYPE html>
 
     <html xmlns="http://www.w3.org/1999/xhtml">
-    <script src="iframe.js"></script>
+    <script src="iframe.js?v=20260305b"></script>
 
     <head runat="server">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Document</title>
-        <link rel="stylesheet" href="pagestyles.css">
+        <link rel="stylesheet" href="pagestyles.css?v=20260305b">
 
         <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                margin: 0;
-                padding: 0;
-            }
-
             #signupContainer {
                 max-width: 400px;
-                margin: 50px auto;
-                padding: 20px;
-                background-color: #fff;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
-
-            .form-group {
-                margin-bottom: 20px;
-            }
-
-            label {
-                display: block;
-                margin-bottom: 5px;
-                color: #666;
-            }
-
-            input[type="text"],
-            input[type="email"],
-            input[type="password"] {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                font-size: 16px;
-            }
-
-            .btn {
-                display: block;
-                width: 100%;
-                padding: 10px;
-                border: none;
-                border-radius: 4px;
-                background-color: #007bff;
-                color: #fff;
-                font-size: 16px;
-                cursor: pointer;
-            }
-
-            .btn:hover {
-                background-color: #0056b3;
             }
         </style>
     </head>
 
     <body>
 
-        <div id="signupContainer" class="container">
+        <div id="sessionBridge" style="display:none" data-loggedin="<%= UtilFunctions.UtilFunctionsClass.IsLoggedIn(Session).ToString().ToLowerInvariant() %>" data-username="<%= Session["username"] ?? "" %>"></div>
+        <div id="returnPage" style="display:none"><%= ReturnPage %></div>
+        <div id="signupContainer" class="container page-card">
+            <h1 class="page-title">Sign Up</h1>
             <form action="signup.aspx" method="post">
                 <div class="form-group">
                     <label for="username">Username:</label>
@@ -86,7 +41,7 @@
                         autocomplete="new-password" required="required">
                     <div id="passwordFeedback" class="invalid-feedback"></div>
                 </div>
-                <button type="submit" name="submit" class="btn">Sign up</button>
+                <button type="submit" name="submit" class="btn btn-full">Sign up</button>
                 <div id="Result">
                     <asp:Literal ID="resultLiteral" runat="server"></asp:Literal>
                 </div>
@@ -99,7 +54,10 @@
             res = res.replaceAll("\n", "")
             res = res.replaceAll(" ", "");
             if (res !== "" && !res.startsWith("Error")) {
-                relayMessage("reload")
+                const userName = document.getElementById('usernameInput').value.trim();
+                relayMessage("AUTHSTATE" + JSON.stringify({ loggedIn: true, username: userName }));
+                let returnPage = document.getElementById('returnPage').textContent.trim() || 'my';
+                window.location.assign('/' + returnPage + '.aspx');
             }
             relayMessage("signup")
             document.getElementById('passwordInput').addEventListener('input', function () {

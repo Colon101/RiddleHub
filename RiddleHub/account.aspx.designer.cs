@@ -7,8 +7,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace RiddleHub {
-    public partial class My {
+namespace RiddleHub
+{
+    public partial class account
+    {
         protected global::System.Web.UI.WebControls.Literal username;
     }
 }

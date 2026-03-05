@@ -5,7 +5,7 @@ using System.Web.SessionState;
 
 namespace UtilFunctions
 {
-    class UtilFunctionsClass
+    public class UtilFunctionsClass
     {
         public const string DBConnString = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Kfir\\Documents\\RiddleHub\\RiddleHub\\RiddleHub\\App_Data\\db.mdf;Integrated Security=True";
 

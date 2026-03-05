@@ -12,8 +12,9 @@ namespace RiddleHub
             bool loggedIn = UtilFunctionsClass.IsLoggedIn(Session);
             if (!loggedIn)
             {
-                Session["permission"] = true;
-                Response.Redirect("/login");
+                Session["login_required"] = true;
+                Response.Redirect("/login.aspx?return=create&required=1");
+                return;
             }
 
             if (Request.Form["submit"] == null)
@@ -24,8 +25,9 @@ namespace RiddleHub
             {
                 if (!UtilFunctionsClass.IsLoggedIn(Session))
                 {
-                    Session["permission"] = true;
-                    Response.Redirect("/login");
+                    Session["login_required"] = true;
+                    Response.Redirect("/login.aspx?return=create&required=1");
+                    return;
                 }
                 if (!string.IsNullOrEmpty(Request.Form["hint"]) || (Request.Form["hint"].Length != 0))
                 {

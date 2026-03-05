@@ -1,49 +1,49 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Linq;
-using System.Web;
-using System.Web.SessionState;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using Newtonsoft.Json;
 using UtilFunctions;
+
 namespace RiddleHub
 {
     public partial class myriddles : System.Web.UI.Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            string username = Request.Params["username"];
             Response.Clear();
             Response.ContentType = "application/json; charset=utf-8";
-            string json = GenerateJson(Session, Request.Params["username"]);
-            if (json == "{\"error\":\"username not found\"}")
+
+            if (!UtilFunctionsClass.IsLoggedIn(Session))
             {
-                Response.StatusCode = 404;
+                Response.StatusCode = 401;
+                Response.Write("{\"error\":\"not logged in\"}");
+                Response.End();
+                return;
             }
-            else if (json == "{\"error\":\"username is empty\"}")
+
+            string username = Convert.ToString(Session["username"]);
+            if (string.IsNullOrWhiteSpace(username))
             {
-                Response.StatusCode = 400;
+                Response.StatusCode = 401;
+                Response.Write("{\"error\":\"not logged in\"}");
+                Response.End();
+                return;
             }
+
+            string json = GenerateJson(username);
             Response.Write(json);
             Response.End();
         }
-        public static string GenerateJson(HttpSessionState session, string username)
-        {
-            if (string.IsNullOrEmpty(username))
-            {
-                return "{\"error\":\"username is empty\"}";
-            }
 
+        public static string GenerateJson(string username)
+        {
             List<UserRiddle> userRiddles = new List<UserRiddle>();
             string query = @"SELECT riddle_id, riddle_text, riddle_hint, answer FROM dbo.[riddle] WHERE username = @Username";
 
             using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
             {
                 SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@Username", username);
+                cmd.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar, 300).Value = username;
 
                 conn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
@@ -59,11 +59,6 @@ namespace RiddleHub
                         };
                         userRiddles.Add(riddle);
                     }
-                }
-                if (userRiddles.Count  == 0)
-                {
-                    
-                    return "{\"error\":\"username not found\"}";
                 }
             }
 
@@ -83,5 +78,4 @@ namespace RiddleHub
     {
         public List<UserRiddle> userRiddles { get; set; }
     }
-
 }

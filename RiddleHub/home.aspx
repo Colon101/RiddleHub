@@ -3,72 +3,53 @@
     <!DOCTYPE html>
 
     <html xmlns="http://www.w3.org/1999/xhtml">
-    <script src="iframe.js"></script>
+    <script src="iframe.js?v=20260305b"></script>
 
     <head runat="server">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Document</title>
-        <link rel="stylesheet" href="pagestyles.css">
+        <link rel="stylesheet" href="pagestyles.css?v=20260305b">
 
         <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                margin: 0;
-                padding: 0;
-            }
-
             #availableRiddlesContainer {
                 max-width: 900px;
-                margin: 30px auto;
                 margin-bottom: 0;
-                padding: 20px;
-                background-color: #fff;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             }
 
-            h1 {
+            #availableRiddlesContainer h1 {
                 margin-bottom: 20px;
-                text-align: center;
-                color: #333;
             }
 
-            ul {
+            #availableRiddlesContainer ul {
                 list-style: none;
                 padding: 0;
             }
 
-            li {
-                margin-bottom: 20px;
+            #availableRiddlesContainer li {
+                margin-bottom: 12px;
+                padding: 12px;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                background: var(--surface-soft);
             }
 
-            p {
+            #availableRiddlesContainer p {
                 margin: 0;
-            }
-
-            a {
-                color: #007bff;
-                text-decoration: none;
-                margin-right: 0;
-            }
-
-            a:hover {
-                text-decoration: underline;
             }
         </style>
     </head>
 
     <body>
-        <div id="availableRiddlesContainer" class="container">
-            <h1>Available Riddles</h1>
-            <ul id="Riddles">
+        <div id="sessionBridge" style="display:none" data-loggedin="<%= UtilFunctions.UtilFunctionsClass.IsLoggedIn(Session).ToString().ToLowerInvariant() %>" data-username="<%= Session["username"] ?? "" %>"></div>
+        <div id="availableRiddlesContainer" class="container page-card">
+            <h1 class="page-title">Available Riddles</h1>
+            <ul id="Riddles" class="list-reset">
                 <!--Riddles will be added dynamically :)-->
             </ul>
         </div>
 
-        <script src="home.js"></script>
+        <script src="home.js?v=20260305b"></script>
         <script>
             relayMessage("home")
         </script>
