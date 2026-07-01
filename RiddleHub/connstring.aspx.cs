@@ -7,7 +7,14 @@ namespace RiddleHub
         public string st;
         protected void Page_Load(object sender, EventArgs e)
         {
-            st += Helper.GenerateConnectionString("db.mdf");
+            if (!Request.IsLocal)
+            {
+                Response.StatusCode = 404;
+                connString.Text = string.Empty;
+                return;
+            }
+
+            st += Server.HtmlEncode(Helper.GenerateConnectionString("db.mdf"));
             connString.Text = st;
         }
     }

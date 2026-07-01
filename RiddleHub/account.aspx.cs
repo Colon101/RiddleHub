@@ -188,7 +188,6 @@ namespace RiddleHub
                 }
             }
 
-            Session["password"] = newPassword;
             SetStatus("Password updated.");
         }
 

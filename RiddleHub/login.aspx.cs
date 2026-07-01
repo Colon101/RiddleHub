@@ -68,7 +68,6 @@ namespace RiddleHub
                         st += "</table>";
                         Session["username"] = username;
                         Session["email"] = email;
-                        Session["password"] = password;
                         Session["login_required"] = null;
                         LoginSucceeded = true;
                         LoggedInUsername = username;

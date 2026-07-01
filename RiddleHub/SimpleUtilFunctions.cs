@@ -44,7 +44,6 @@ namespace UtilFunctions
         public static bool IsLoggedIn(HttpSessionState session)
         {
             if (session["email"] == null) return false;
-            else if (session["password"] == null) return false;
             else if (session["username"] == null) return false;
             return true;
         }
