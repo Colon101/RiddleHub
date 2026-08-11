@@ -125,7 +125,11 @@ ensure_local_sql_server() {
   RIDDLEHUB_SQL_PORT="${RIDDLEHUB_SQL_PORT:-1433}"
   RIDDLEHUB_SQL_CONTAINER="${RIDDLEHUB_SQL_CONTAINER:-riddlehub-sql}"
   RIDDLEHUB_SQL_IMAGE="${RIDDLEHUB_SQL_IMAGE:-mcr.microsoft.com/mssql/server:2022-latest}"
-  RIDDLEHUB_SQL_PASSWORD="${RIDDLEHUB_SQL_PASSWORD:-Your_strong_Password123}"
+  RIDDLEHUB_SQL_PASSWORD="${RIDDLEHUB_SQL_PASSWORD:-}"
+  [[ -n "$RIDDLEHUB_SQL_PASSWORD" ]] || fail "Set RIDDLEHUB_SQL_PASSWORD to a unique secret before starting SQL Server."
+  [[ "${#RIDDLEHUB_SQL_PASSWORD}" -ge 16 ]] ||
+    fail "RIDDLEHUB_SQL_PASSWORD must contain at least 16 characters."
+  export RIDDLEHUB_SQL_PASSWORD
 
   if is_tcp_open "$RIDDLEHUB_SQL_HOST" "$RIDDLEHUB_SQL_PORT"; then
     echo "Detected SQL Server at $RIDDLEHUB_SQL_HOST:$RIDDLEHUB_SQL_PORT"
@@ -159,7 +163,7 @@ ensure_local_sql_server() {
       --name "$RIDDLEHUB_SQL_CONTAINER" \
       -e ACCEPT_EULA=Y \
       -e MSSQL_SA_PASSWORD="$RIDDLEHUB_SQL_PASSWORD" \
-      -p "$RIDDLEHUB_SQL_PORT:1433" \
+      -p "127.0.0.1:$RIDDLEHUB_SQL_PORT:1433" \
       "$RIDDLEHUB_SQL_IMAGE" >/dev/null
   fi
 
@@ -186,6 +190,9 @@ HELP
 
 export RIDDLEHUB_CONNECTION_NAME="${RIDDLEHUB_CONNECTION_NAME:-LinuxSqlServerDev}"
 PORT="${PORT:-8080}"
+RIDDLEHUB_BIND_ADDRESS="${RIDDLEHUB_BIND_ADDRESS:-127.0.0.1}"
+[[ "$RIDDLEHUB_BIND_ADDRESS" == "127.0.0.1" || "$RIDDLEHUB_BIND_ADDRESS" == "::1" ]] ||
+  fail "Development hosting must bind to a loopback address. Put an HTTPS reverse proxy in front for remote access."
 RIDDLEHUB_SERVER="${RIDDLEHUB_SERVER:-auto}"
 APACHE_CONF="${RIDDLEHUB_APACHE_CONF:-}"
 RIDDLEHUB_ALLOW_LEGACY_XSP="${RIDDLEHUB_ALLOW_LEGACY_XSP:-0}"
@@ -224,11 +231,12 @@ fi
 echo "Starting RiddleHub"
 echo "  App directory: $APP_DIR"
 echo "  Port: $PORT"
+echo "  Bind address: $RIDDLEHUB_BIND_ADDRESS"
 echo "  Connection profile: $RIDDLEHUB_CONNECTION_NAME"
 echo "  Host stack: $RIDDLEHUB_SERVER"
 
 ensure_local_sql_server
-echo "Tip: SQL password must match Web.config LinuxSqlServerDev (or set env RIDDLEHUB_SQL_PASSWORD to override)."
+echo "SQL password supplied through RIDDLEHUB_SQL_PASSWORD; no password is stored in Web.config."
 
 case "$RIDDLEHUB_SERVER" in
   apache-mod_mono)
@@ -241,16 +249,14 @@ case "$RIDDLEHUB_SERVER" in
       fi
     fi
     mono_module_loaded || fail "Apache mono_module is not loaded. Enable mod_mono in Apache first."
-    if [[ -n "$APACHE_CONF" && ! -f "$APACHE_CONF" ]]; then
+    [[ -n "$APACHE_CONF" ]] ||
+      fail "Set RIDDLEHUB_APACHE_CONF to an enabled loopback-only vhost based on scripts/apache-riddlehub.conf.example."
+    [[ -f "$APACHE_CONF" ]] ||
       fail "RIDDLEHUB_APACHE_CONF points to missing file: $APACHE_CONF"
-    fi
-    if [[ -z "$APACHE_CONF" ]]; then
-      echo "WARN: RIDDLEHUB_APACHE_CONF is not set; ensure your Apache vhost is configured for: $APP_DIR"
-      echo "      Example template: scripts/apache-riddlehub.conf.example"
-    else
-      echo "Using Apache config file: $APACHE_CONF"
-    fi
-    echo "  Open URL: http://localhost:$PORT/index.aspx"
+    grep -Eq '<VirtualHost[[:space:]]+127\.0\.0\.1:' "$APACHE_CONF" ||
+      fail "The RiddleHub Apache vhost must listen on 127.0.0.1. Use an HTTPS reverse proxy for remote access."
+    echo "Using loopback-only Apache config file: $APACHE_CONF"
+    echo "  Open URL: http://$RIDDLEHUB_BIND_ADDRESS:$PORT/index.aspx"
     exec apachectl -DFOREGROUND
     ;;
   xsp4|xsp)
@@ -273,8 +279,8 @@ case "$RIDDLEHUB_SERVER" in
       }
     fi
     echo "WARN: $XSP_CMD is a legacy fallback (mono/xsp upstream is archived). Prefer apache-mod_mono when possible."
-    echo "  Open URL: http://localhost:$PORT/index.aspx"
-    exec "$XSP_CMD" --port "$PORT" --applications "$RIDDLEHUB_XSP_APPLICATIONS"
+    echo "  Open URL: http://$RIDDLEHUB_BIND_ADDRESS:$PORT/index.aspx"
+    exec "$XSP_CMD" --address "$RIDDLEHUB_BIND_ADDRESS" --port "$PORT" --applications "$RIDDLEHUB_XSP_APPLICATIONS"
     ;;
   *)
     fail "Invalid RIDDLEHUB_SERVER='$RIDDLEHUB_SERVER'. Use: auto, apache-mod_mono, xsp4, or xsp."

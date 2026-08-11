@@ -1,102 +1,128 @@
-﻿using System;
+using System;
 using System.Data.SqlClient;
+using RiddleHub.Security;
 using UtilFunctions;
 
 namespace RiddleHub
 {
     public partial class signup : System.Web.UI.Page
     {
-        public string st;
-        public string ReturnPage;
+        public string st = string.Empty;
+        public string ReturnPage = "my";
+        public string CsrfTokenEncoded = string.Empty;
+        public bool SignupSucceeded;
+        public string SignedUpUsername = string.Empty;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            bool loggedin = UtilFunctionsClass.IsLoggedIn(Session);
             ReturnPage = SafeReturnPage(Request.Params["return"]);
-
-            if (loggedin)
+            CsrfTokenEncoded = CsrfProtection.GetEncodedToken(Session);
+            if (UtilFunctionsClass.IsLoggedIn(Session))
             {
                 Response.Redirect("/my.aspx");
+                return;
             }
             if (Request.Form["submit"] == null)
             {
                 return;
             }
+            if (CsrfProtection.RejectInvalidPost(Request, Response, Session))
+            {
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
 
             string email = (Request.Form["email"] ?? string.Empty).Trim();
-            string password = Request.Form["password"];
+            string password = Request.Form["password"] ?? string.Empty;
             string username = (Request.Form["username"] ?? string.Empty).Trim();
-            string passwordValidation = UtilFunctionsClass.ValidatePassword(password);
+            int retryAfterSeconds;
+            if (!AuthRateLimiter.IsAllowed(Request, "signup", email, out retryAfterSeconds))
+            {
+                Response.StatusCode = 429;
+                Response.AddHeader("Retry-After", retryAfterSeconds.ToString());
+                SetStatus("Too many signup attempts. Try again later.", true);
+                return;
+            }
 
+            string passwordValidation = UtilFunctionsClass.ValidatePassword(password);
             if (!UtilFunctionsClass.ValidUserName(username))
             {
-                Response.StatusCode = 400;
-                st += "<table dir ='ltr' border ='1'>";
-                st += "<tr><th style='color:red'> Error </th></tr>";
-                st += "<tr><td>Error:</td><td>Invalid Username</td></tr>";
-                st += "</table>";
+                AuthRateLimiter.RecordFailure(Request, "signup", email);
+                SetStatus("Invalid username. Use letters, numbers, and underscores only.", true);
+                return;
             }
-            else if (passwordValidation != "Valid")
+            if (passwordValidation != "Valid")
             {
-                Response.StatusCode = 400;
-                st += "<table dir ='ltr' border ='1'>";
-                st += "<tr><th style='color:red'> Error </th></tr>";
-                st += $"<tr><td>Error:</td><td>{passwordValidation}</td></tr>";
-                st += "</table>";
+                AuthRateLimiter.RecordFailure(Request, "signup", email);
+                SetStatus(passwordValidation, true);
+                return;
             }
-            else if (!UtilFunctionsClass.ValidateEmail(email))
+            if (email.Length > 300 || !UtilFunctionsClass.ValidateEmail(email))
             {
-                Response.StatusCode = 400;
-                st += "<table dir ='ltr' border ='1'>";
-                st += "<tr><th style='color:red'> Error </th></tr>";
-                st += "<tr><td>Error:</td><td>Invalid Email</td></tr>";
-                st += "</table>";
+                AuthRateLimiter.RecordFailure(Request, "signup", email);
+                SetStatus("Invalid email.", true);
+                return;
             }
-            else
-            {
-                string query2 = "SELECT COUNT(*) FROM dbo.[user] WHERE email = @Email OR username = @Username;";
-                bool isAccountUsed = false;
 
-                using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
+            const string duplicateQuery =
+                "SELECT COUNT(*) FROM dbo.[user] WHERE [email] = @Email OR [username] = @Username;";
+            using (SqlConnection connection = Helper.ConnectToDb())
+            using (SqlCommand command = new SqlCommand(duplicateQuery, connection))
+            {
+                command.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar, 300).Value = email;
+                command.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar, 300).Value = username;
+                connection.Open();
+                if ((int)command.ExecuteScalar() > 0)
                 {
-                    SqlCommand cmd = new SqlCommand(query2, conn);
-                    cmd.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar).Value = email;
-                    cmd.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar).Value = username;
-
-                    conn.Open();
-                    int count = (int)cmd.ExecuteScalar();
-                    isAccountUsed = count > 0;
-                }
-
-                if (isAccountUsed)
-                {
-                    st += "<table dir ='ltr' border ='1'>";
-                    st += "<tr><th style='color: red;'>Error</th></tr>";
-                    st += "<tr><td>Error</td><td>Username or Email is already in use</td></tr>";
-                    st += "</table>";
+                    AuthRateLimiter.RecordFailure(Request, "signup", email);
                     Response.StatusCode = 409;
-                }
-                else
-                {
-                    string query = "INSERT INTO dbo.[user] (username, password, email) VALUES (@Username, @Password, @Email);";
-                    using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
-                    {
-                        SqlCommand cmd = new SqlCommand(query, conn);
-                        cmd.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar).Value = username;
-                        cmd.Parameters.Add("@Password", System.Data.SqlDbType.NVarChar).Value = password;
-                        cmd.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar).Value = email;
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    st += "<table dir ='ltr' border ='1'>";
-                    st += "<tr><th>Success</th></tr>";
-                    st += "</table>";
-                    Session["username"] = username;
-                    Session["email"] = email;
-                    Session["password"] = password;
+                    SetStatus("Username or email is already in use.", true);
+                    return;
                 }
             }
 
+            const string insertQuery = @"
+INSERT INTO dbo.[user]
+    ([username], [password], [email], [password_reset_required], [session_version])
+VALUES
+    (@Username, @PasswordHash, @Email, 0, 1);";
+            try
+            {
+                using (SqlConnection connection = Helper.ConnectToDb())
+                using (SqlCommand command = new SqlCommand(insertQuery, connection))
+                {
+                    command.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar, 300).Value = username;
+                    command.Parameters.Add("@PasswordHash", System.Data.SqlDbType.NVarChar, 300).Value =
+                        PasswordSecurity.HashPassword(password);
+                    command.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar, 300).Value = email;
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (SqlException exception)
+            {
+                if (exception.Number == 2601 || exception.Number == 2627)
+                {
+                    AuthRateLimiter.RecordFailure(Request, "signup", email);
+                    Response.StatusCode = 409;
+                    SetStatus("Username or email is already in use.", true);
+                    return;
+                }
+                throw;
+            }
+
+            AuthRateLimiter.Reset(Request, "signup", email);
+            UtilFunctionsClass.BeginAuthenticatedSession(Session, username, email, 1);
+            SignupSucceeded = true;
+            SignedUpUsername = username;
+            SetStatus("Signup successful.");
+        }
+
+        private void SetStatus(string message, bool isError = false)
+        {
+            string color = isError ? "red" : "green";
+            st = "<table dir='ltr' border='1'><tr><th style='color:" + color + "'>" +
+                System.Web.HttpUtility.HtmlEncode(message) + "</th></tr></table>";
             resultLiteral.Text = st;
         }
 

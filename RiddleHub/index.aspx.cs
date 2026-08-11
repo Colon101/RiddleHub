@@ -12,7 +12,7 @@ namespace RiddleHub
             bool loggedIn = UtilFunctionsClass.IsLoggedIn(Session);
             if (loggedIn)
             {
-                loginText.Text = "Hi! " + Session["username"];
+                loginText.Text = "Hi! " + System.Web.HttpUtility.HtmlEncode(Convert.ToString(Session["username"]));
                 signupText.Text = "Sign Out";
 
             }

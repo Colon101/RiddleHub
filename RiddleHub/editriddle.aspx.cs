@@ -1,5 +1,6 @@
 using System;
 using System.Data.SqlClient;
+using RiddleHub.Security;
 using UtilFunctions;
 
 namespace RiddleHub
@@ -8,68 +9,67 @@ namespace RiddleHub
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Request.RequestType == "POST")
+            if (string.Equals(Request.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
             {
                 HandlePost();
                 return;
             }
 
-            if (string.IsNullOrEmpty(Request.Params["id"]))
+            int riddleId;
+            if (!int.TryParse(Request.QueryString["id"], out riddleId) || riddleId <= 0)
             {
                 Response.StatusCode = 400;
-                Response.Redirect("/my");
+                riddleInfo.Text = "Invalid riddle id.";
                 return;
             }
-            string id = Request.Params["id"];
-            riddleInfo.Text += id;
+            riddleInfo.Text = riddleId.ToString();
         }
 
         private void HandlePost()
         {
             if (!UtilFunctionsClass.IsLoggedIn(Session))
             {
-                Response.StatusCode = 401;
-                Response.Write("not logged in");
-                Response.End();
+                WriteResult(401, "not logged in");
+                return;
+            }
+            if (CsrfProtection.RejectInvalidPost(Request, Response, Session))
+            {
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
+            if (!string.Equals((Request.Form["action"] ?? string.Empty).Trim(), "delete", StringComparison.Ordinal))
+            {
+                WriteResult(400, "invalid action");
                 return;
             }
 
-            if ((Request.Form["action"] ?? "").Trim() != "delete")
+            int riddleId;
+            if (!int.TryParse(Request.Form["id"], out riddleId) || riddleId <= 0)
             {
-                Response.StatusCode = 400;
-                Response.Write("invalid action");
-                Response.End();
+                WriteResult(400, "invalid id");
                 return;
             }
 
-            if (!int.TryParse(Request.Form["id"], out int riddleId))
+            const string query =
+                "DELETE FROM dbo.[riddle] WHERE [riddle_id] = @RiddleId AND [username] = @Username;";
+            using (SqlConnection connection = Helper.ConnectToDb())
+            using (SqlCommand command = new SqlCommand(query, connection))
             {
-                Response.StatusCode = 400;
-                Response.Write("invalid id");
-                Response.End();
-                return;
+                command.Parameters.Add("@RiddleId", System.Data.SqlDbType.Int).Value = riddleId;
+                command.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar, 300).Value =
+                    Convert.ToString(Session["username"]);
+                connection.Open();
+                int rows = command.ExecuteNonQuery();
+                WriteResult(rows == 0 ? 404 : 200, rows == 0 ? "riddle not found" : "deleted");
             }
+        }
 
-            string query = "DELETE FROM dbo.[riddle] WHERE riddle_id = @RiddleId AND username = @Username";
-            using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
-            {
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.Add("@RiddleId", System.Data.SqlDbType.Int).Value = riddleId;
-                cmd.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar).Value = Session["username"];
-                conn.Open();
-                int rows = cmd.ExecuteNonQuery();
-                if (rows == 0)
-                {
-                    Response.StatusCode = 404;
-                    Response.Write("riddle not found");
-                }
-                else
-                {
-                    Response.StatusCode = 200;
-                    Response.Write("deleted");
-                }
-            }
-            Response.End();
+        private void WriteResult(int statusCode, string message)
+        {
+            Response.StatusCode = statusCode;
+            Response.TrySkipIisCustomErrors = true;
+            Response.ContentType = "text/plain; charset=utf-8";
+            Response.Write(message);
         }
     }
 }

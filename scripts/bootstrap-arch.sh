@@ -204,21 +204,26 @@ if [[ "$HAS_DOCKER" -eq 1 ]]; then
   cat <<CMDS
 Bootstrap succeeded.
 
+Set RIDDLEHUB_SQL_PASSWORD and RIDDLEHUB_ADMIN_PASSWORD from your secret store.
+For Apache, also set RIDDLEHUB_APACHE_CONF to the enabled loopback-only vhost.
+
 Run app (Docker SQL is auto-managed):
   export RIDDLEHUB_CONNECTION_NAME=LinuxSqlServerDev
   $RUN_APP_CMD
 
 Notes:
   - run-linux.sh auto-starts docker daemon when needed.
-  - run-linux.sh auto-creates/starts container 'riddlehub-sql' when needed.
+  - The SQL container and development HTTP listener bind to loopback only.
 CMDS
 else
   cat <<CMDS
 Bootstrap succeeded.
 
 Run commands (external SQL Server):
-  1) Update the LinuxSqlServerDev connection string in RiddleHub/Web.config with your SQL Server host/user/password.
-  2) export RIDDLEHUB_CONNECTION_NAME=LinuxSqlServerDev
-  3) $RUN_APP_CMD
+  1) Configure the LinuxSqlServerDev host/user with Encrypt=True in RiddleHub/Web.config.
+  2) Set RIDDLEHUB_SQL_PASSWORD and RIDDLEHUB_ADMIN_PASSWORD from your secret store.
+  3) export RIDDLEHUB_CONNECTION_NAME=LinuxSqlServerDev
+  4) For Apache, set RIDDLEHUB_APACHE_CONF to the enabled loopback-only vhost.
+  5) $RUN_APP_CMD
 CMDS
 fi

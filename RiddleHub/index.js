@@ -1,6 +1,6 @@
 window.addEventListener("click", (event) => {
     const navDiv = document.querySelector(".navigation");
-    if (!navDiv.contains(event.target)) {
+    if (navDiv && !navDiv.contains(event.target)) {
         document.querySelector(".toggle-menu").checked = false;
     }
 });
@@ -11,6 +11,7 @@ let authState = {
 };
 
 const THEME_STORAGE_KEY = "riddlehub-theme";
+const VALID_PAGES = new Set(["home", "create", "my", "account", "login", "signup", "signout"]);
 
 function normalizedTheme(themeValue) {
     return themeValue === "dark" ? "dark" : "light";
@@ -60,7 +61,7 @@ function setIframeThemeSynchronously(themeName) {
 function pushThemeToIframe(themeName) {
     const contentElement = document.getElementById("content");
     if (contentElement && contentElement.contentWindow) {
-        contentElement.contentWindow.postMessage("THEME" + themeName, "*");
+        contentElement.contentWindow.postMessage("THEME" + themeName, window.location.origin);
     }
 }
 
@@ -69,31 +70,42 @@ function applyTheme(themeName) {
     document.documentElement.setAttribute("data-theme", safeTheme);
     localStorage.setItem(THEME_STORAGE_KEY, safeTheme);
     updateThemeToggleLabel(safeTheme);
-
     setIframeThemeSynchronously(safeTheme);
     pushThemeToIframe(safeTheme);
 }
 
 function normalizePage(pageName) {
-    const validPages = new Set(["home", "create", "my", "account", "login", "signup", "signout"]);
-    if (!pageName || !validPages.has(pageName)) {
-        return "home";
+    const candidate = (pageName || "").trim().toLowerCase();
+    return VALID_PAGES.has(candidate) ? candidate : "home";
+}
+
+function parseRoute(routeValue) {
+    const candidate = (routeValue || "").trim().toLowerCase();
+    if (VALID_PAGES.has(candidate)) {
+        return { hash: candidate, src: candidate + ".aspx" };
     }
-    return pageName;
+
+    const editMatch = /^edit([1-9][0-9]*)$/.exec(candidate);
+    if (editMatch) {
+        return {
+            hash: "edit" + editMatch[1],
+            src: "editriddle.aspx?id=" + encodeURIComponent(editMatch[1])
+        };
+    }
+
+    return { hash: "home", src: "home.aspx" };
 }
 
 function currentHashPage() {
-    const hash = window.location.hash.slice(1).trim();
-    if (!hash) return "home";
-    if (hash.startsWith("edit")) return "my";
-    return normalizePage(hash);
+    const route = parseRoute(window.location.hash.slice(1));
+    return route.hash.startsWith("edit") ? "my" : normalizePage(route.hash);
 }
 
 function updateNavForAuth(isLoggedIn, username) {
     const loginLink = document.getElementById("nav-login");
     const signupLink = document.getElementById("nav-signup");
     authState.loggedIn = !!isLoggedIn;
-    authState.username = username || "";
+    authState.username = typeof username === "string" ? username.slice(0, 300) : "";
 
     if (authState.loggedIn) {
         loginLink.textContent = authState.username;
@@ -104,13 +116,34 @@ function updateNavForAuth(isLoggedIn, username) {
     }
 }
 
-function loadPageInIframe(pageId) {
+function updateHash(routeHash) {
+    const safeHash = parseRoute(routeHash).hash;
+    if (window.location.hash.slice(1) !== safeHash) {
+        window.location.hash = "#" + safeHash;
+    }
+}
+
+function loadRoute(routeValue, updateLocationHash) {
+    const route = parseRoute(routeValue);
     const contentElement = document.getElementById("content");
-    contentElement.src = pageId + ".aspx";
+    if (contentElement.getAttribute("src") !== route.src) {
+        contentElement.src = route.src;
+    }
+    if (updateLocationHash) {
+        updateHash(route.hash);
+    }
+}
+
+function loadPageInIframe(pageId) {
+    loadRoute(normalizePage(pageId), true);
 }
 
 window.addEventListener("message", (event) => {
-    if (typeof event.data !== "string") {
+    const contentElement = document.getElementById("content");
+    if (event.origin !== window.location.origin ||
+        !contentElement ||
+        event.source !== contentElement.contentWindow ||
+        typeof event.data !== "string") {
         return;
     }
 
@@ -126,19 +159,22 @@ window.addEventListener("message", (event) => {
         return;
     }
     if (message === "reload") {
-        window.location.hash = "#my";
+        updateHash("my");
         window.location.reload();
         return;
     }
     if (message === "reloadout") {
-        window.location.hash = "";
+        updateHash("home");
         window.location.reload();
         return;
     }
     if (message.startsWith("AUTHSTATE")) {
         try {
             const payload = JSON.parse(message.substring("AUTHSTATE".length));
-            updateNavForAuth(payload.loggedIn, payload.username || "");
+            if (payload && typeof payload.loggedIn === "boolean" &&
+                (payload.username === undefined || typeof payload.username === "string")) {
+                updateNavForAuth(payload.loggedIn, payload.username || "");
+            }
         } catch (error) {
             console.log("Failed parsing AUTHSTATE", error);
         }
@@ -151,7 +187,6 @@ window.addEventListener("message", (event) => {
     if (message === "SIGNOUT") {
         updateNavForAuth(false, "");
         loadPageInIframe("home");
-        window.location.hash = "#home";
         return;
     }
     if (message.startsWith("LOG")) {
@@ -159,7 +194,9 @@ window.addEventListener("message", (event) => {
         return;
     }
 
-    window.location.hash = "#" + message;
+    if (VALID_PAGES.has(message) || /^edit[1-9][0-9]*$/.test(message)) {
+        updateHash(message);
+    }
 });
 
 function hideNav() {
@@ -169,28 +206,27 @@ function hideNav() {
 document.querySelectorAll(".pages").forEach((page) => {
     page.addEventListener("click", (event) => {
         event.preventDefault();
-        const pageid = page.dataset.page || "home";
+        const pageId = normalizePage(page.dataset.page || "home");
         const contentElement = document.getElementById("content");
 
-        if (authState.loggedIn && pageid === "login") {
-            contentElement.src = "account.aspx";
-            window.location.hash = "#account";
+        if (authState.loggedIn && pageId === "login") {
+            loadPageInIframe("account");
             hideNav();
             return;
         }
 
-        if (authState.loggedIn && pageid === "signup") {
-            contentElement.src = "signout.aspx";
-            window.location.hash = "#signout";
+        if (authState.loggedIn && pageId === "signup") {
+            loadPageInIframe("signout");
             hideNav();
             return;
         }
 
-        const safeReturnPage = normalizePage(currentHashPage());
-        if (pageid === "login" || pageid === "signup") {
-            contentElement.src = pageid + ".aspx?return=" + encodeURIComponent(safeReturnPage);
+        const safeReturnPage = currentHashPage();
+        if (pageId === "login" || pageId === "signup") {
+            contentElement.src = pageId + ".aspx?return=" + encodeURIComponent(safeReturnPage);
+            updateHash(pageId);
         } else {
-            contentElement.src = pageid + ".aspx";
+            loadPageInIframe(pageId);
         }
 
         hideNav();
@@ -226,16 +262,7 @@ document.addEventListener("focus", handleResize);
 window.addEventListener("load", handleResize);
 document.addEventListener("fullscreenchange", handleResize);
 document.addEventListener("webkitfullscreenchange", handleResize);
+window.addEventListener("hashchange", () => loadRoute(window.location.hash.slice(1), false));
 
 applyTheme(getCurrentTheme());
-
-if (window.location.hash.slice(1) !== "") {
-    if (window.location.hash.slice(1).trim().startsWith("edit")) {
-        document.getElementById("content").src = "editriddle.aspx?id=" + window.location.hash.slice(1).trim().substring(4);
-    }
-    else {
-        document.getElementById("content").src = window.location.hash.slice(1) + ".aspx";
-    }
-} else {
-    document.getElementById("content").src = "home.aspx";
-}
+loadRoute(window.location.hash.slice(1), false);

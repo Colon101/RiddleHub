@@ -40,7 +40,7 @@ namespace RiddleHub
             List<UserRiddle> userRiddles = new List<UserRiddle>();
             string query = @"SELECT riddle_id, riddle_text, riddle_hint, answer FROM dbo.[riddle] WHERE username = @Username";
 
-            using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
+            using (SqlConnection conn = Helper.ConnectToDb())
             {
                 SqlCommand cmd = new SqlCommand(query, conn);
                 cmd.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar, 300).Value = username;
