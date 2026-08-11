@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using RiddleHub.Security;
 
 namespace RiddleHub
 {
@@ -17,84 +19,116 @@ namespace RiddleHub
         public string SqlResultHtml = string.Empty;
         public string SqlMode = "query";
         public string EncodedSqlInput = string.Empty;
+        public string CsrfTokenEncoded = string.Empty;
         public bool IsAdminAuthenticated;
         public bool IsAdminConfigured;
 
         private const string AdminPasswordKey = "RIDDLEHUB_ADMIN_PASSWORD";
+        private const string AdminEnvFileKey = "RIDDLEHUB_ENV_FILE";
         private const string AdminSessionKey = "RIDDLEHUB_ADMIN_AUTH";
         private string _configuredAdminPassword = string.Empty;
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            CsrfTokenEncoded = CsrfProtection.GetEncodedToken(Session);
             string action = (Request.Form["action"] ?? string.Empty).Trim().ToLowerInvariant();
-
-            if (action == "admin_logout")
+            if (string.Equals(Request.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase) &&
+                CsrfProtection.RejectInvalidPost(Request, Response, Session))
             {
-                Session.Remove(AdminSessionKey);
-                SetStatus("Logged out.");
-            }
-
-            _configuredAdminPassword = ResolveAdminPassword();
-            IsAdminConfigured = !string.IsNullOrWhiteSpace(_configuredAdminPassword);
-            IsAdminAuthenticated = IsAdminSessionAuthenticated();
-
-            if (!IsAdminConfigured)
-            {
-                SetStatus("Admin password is not configured. Set RIDDLEHUB_ADMIN_PASSWORD in environment or .env.", true);
+                Context.ApplicationInstance.CompleteRequest();
                 return;
             }
 
+            _configuredAdminPassword = ResolveAdminPassword();
+            IsAdminConfigured = !string.IsNullOrWhiteSpace(_configuredAdminPassword) &&
+                _configuredAdminPassword.Length >= 16 && _configuredAdminPassword.Length <= 256;
+            IsAdminAuthenticated = IsAdminSessionAuthenticated();
+            if (!IsAdminConfigured)
+            {
+                Session.Remove(AdminSessionKey);
+                SetStatus("Admin password must be configured as a unique 16-256 character RIDDLEHUB_ADMIN_PASSWORD in the process environment.", true);
+                return;
+            }
+
+            if (Request.HttpMethod == "POST" && action == "admin_logout")
+            {
+                Session.Remove(AdminSessionKey);
+                IsAdminAuthenticated = false;
+                SetStatus("Logged out.");
+                return;
+            }
             if (Request.HttpMethod == "POST" && action == "admin_login")
             {
                 HandleAdminLogin();
                 IsAdminAuthenticated = IsAdminSessionAuthenticated();
             }
-
             if (!IsAdminAuthenticated)
             {
                 return;
             }
-
-            if (Request.HttpMethod == "POST" && action != "admin_login" && action != "admin_logout")
+            if (Request.HttpMethod == "POST" && action != "admin_login")
             {
                 HandlePostAction(action);
             }
-
             LoadDashboardData();
         }
 
         private bool IsAdminSessionAuthenticated()
         {
-            object value = Session[AdminSessionKey];
-            if (value is bool boolValue)
-            {
-                return boolValue;
-            }
-
-            bool parsed;
-            return value != null && bool.TryParse(Convert.ToString(value), out parsed) && parsed;
+            string sessionFingerprint = Convert.ToString(Session[AdminSessionKey]);
+            return !string.IsNullOrEmpty(_configuredAdminPassword) &&
+                !string.IsNullOrEmpty(sessionFingerprint) &&
+                PasswordSecurity.FixedTimeEqualsUtf8(
+                    sessionFingerprint,
+                    CreatePasswordFingerprint(_configuredAdminPassword));
         }
 
         private void HandleAdminLogin()
         {
             string providedPassword = (Request.Form["admin_password"] ?? string.Empty).Trim();
-            if (providedPassword == _configuredAdminPassword)
+            int retryAfterSeconds;
+            if (!AuthRateLimiter.IsAllowed(Request, "admin-login", "admin", out retryAfterSeconds))
             {
-                Session[AdminSessionKey] = true;
+                Response.StatusCode = 429;
+                Response.AddHeader("Retry-After", retryAfterSeconds.ToString());
+                SetStatus("Too many admin login attempts. Try again later.", true);
+                return;
+            }
+            if (providedPassword.Length == 0 || providedPassword.Length > 256)
+            {
+                AuthRateLimiter.RecordFailure(Request, "admin-login", "admin");
+                Session.Remove(AdminSessionKey);
+                SetStatus("Invalid admin password.", true);
+                return;
+            }
+
+            if (PasswordSecurity.FixedTimeEqualsUtf8(providedPassword, _configuredAdminPassword))
+            {
+                AuthRateLimiter.Reset(Request, "admin-login", "admin");
+                Session[AdminSessionKey] = CreatePasswordFingerprint(_configuredAdminPassword);
                 SetStatus("Admin login successful.");
                 return;
             }
 
+            AuthRateLimiter.RecordFailure(Request, "admin-login", "admin");
             Session.Remove(AdminSessionKey);
             SetStatus("Invalid admin password.", true);
         }
 
+        private static string CreatePasswordFingerprint(string password)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password ?? string.Empty)));
+            }
+        }
+
         private string ResolveAdminPassword()
         {
-            string directEnv = Environment.GetEnvironmentVariable(AdminPasswordKey);
-            if (!string.IsNullOrWhiteSpace(directEnv))
+            string directEnvironment = Environment.GetEnvironmentVariable(AdminPasswordKey);
+            if (!string.IsNullOrWhiteSpace(directEnvironment))
             {
-                return directEnv.Trim();
+                return directEnvironment.Trim();
             }
 
             foreach (string envPath in GetDotEnvCandidatePaths())
@@ -105,37 +139,42 @@ namespace RiddleHub
                     return value.Trim();
                 }
             }
-
             return string.Empty;
         }
 
         private IEnumerable<string> GetDotEnvCandidatePaths()
         {
-            string appRoot = Server.MapPath("~/");
+            string appRoot = Path.GetFullPath(Server.MapPath("~/"));
             var candidates = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(appRoot))
+            string explicitFile = Environment.GetEnvironmentVariable(AdminEnvFileKey);
+            if (!string.IsNullOrWhiteSpace(explicitFile))
             {
-                candidates.Add(Path.Combine(appRoot, ".env"));
-
-                string parent = Path.GetFullPath(Path.Combine(appRoot, ".."));
-                candidates.Add(Path.Combine(parent, ".env"));
+                candidates.Add(Path.GetFullPath(explicitFile));
             }
+            candidates.Add(Path.GetFullPath(Path.Combine(appRoot, "..", ".env")));
 
-            string processCwd = Directory.GetCurrentDirectory();
-            if (!string.IsNullOrWhiteSpace(processCwd))
+            string processDirectory = Directory.GetCurrentDirectory();
+            if (!string.IsNullOrWhiteSpace(processDirectory))
             {
-                candidates.Add(Path.Combine(processCwd, ".env"));
+                candidates.Add(Path.GetFullPath(Path.Combine(processDirectory, ".env")));
             }
 
             var unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (string path in candidates)
             {
-                if (!string.IsNullOrWhiteSpace(path) && unique.Add(path))
+                if (IsOutsideDirectory(path, appRoot) && unique.Add(path))
                 {
                     yield return path;
                 }
             }
+        }
+
+        private static bool IsOutsideDirectory(string path, string directory)
+        {
+            string normalizedPath = Path.GetFullPath(path);
+            string normalizedDirectory = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar) +
+                Path.DirectorySeparatorChar;
+            return !normalizedPath.StartsWith(normalizedDirectory, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ReadEnvValueFromFile(string path, string key)
@@ -144,35 +183,28 @@ namespace RiddleHub
             {
                 return null;
             }
-
             foreach (string rawLine in File.ReadAllLines(path))
             {
                 string line = rawLine.Trim();
-                if (line.Length == 0 || line.StartsWith("#"))
+                if (line.Length == 0 || line.StartsWith("#", StringComparison.Ordinal))
                 {
                     continue;
                 }
-
                 int separatorIndex = line.IndexOf('=');
-                if (separatorIndex <= 0)
+                if (separatorIndex <= 0 ||
+                    !string.Equals(line.Substring(0, separatorIndex).Trim(), key, StringComparison.Ordinal))
                 {
                     continue;
                 }
-
-                string parsedKey = line.Substring(0, separatorIndex).Trim();
-                if (!string.Equals(parsedKey, key, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
                 string value = line.Substring(separatorIndex + 1).Trim();
-                if ((value.StartsWith("\"") && value.EndsWith("\"")) || (value.StartsWith("'") && value.EndsWith("'")))
+                if (value.Length >= 2 &&
+                    ((value.StartsWith("\"", StringComparison.Ordinal) && value.EndsWith("\"", StringComparison.Ordinal)) ||
+                     (value.StartsWith("'", StringComparison.Ordinal) && value.EndsWith("'", StringComparison.Ordinal))))
                 {
                     value = value.Substring(1, value.Length - 2);
                 }
                 return value;
             }
-
             return null;
         }
 
@@ -187,15 +219,15 @@ namespace RiddleHub
                         break;
                     case "seed_demo":
                         SeedDemoData();
-                        SetStatus("Demo data ensured.");
+                        SetStatus("Demo data ensured. The demo account has no usable password.");
                         break;
                     case "clear_riddles":
-                        ClearRiddles();
+                        ExecuteNonQuery("DELETE FROM dbo.[riddle];");
                         SetStatus("All riddles deleted.");
                         break;
                     case "clear_all":
                         ResetUsersAndRiddles();
-                        SetStatus("Users+riddles reset to demo state.");
+                        SetStatus("Users and riddles reset to a disabled demo account.");
                         break;
                     case "delete_user":
                         DeleteUserByUsername(Request.Form["username"]);
@@ -207,89 +239,90 @@ namespace RiddleHub
                         RunSqlFromForm();
                         break;
                     default:
-                        SetStatus("Unknown action: " + Encode(action), true);
+                        SetStatus("Unknown action.", true);
                         break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                SetStatus(ex.Message, true);
+                SetStatus(exception.Message, true);
             }
         }
 
         private void LoadDashboardData()
         {
-            using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
+            using (SqlConnection connection = Helper.ConnectToDb())
             {
-                conn.Open();
-
-                DataTable summary = QueryDataTable(conn,
-                    "SELECT (SELECT COUNT(*) FROM dbo.[user]) AS users_count, (SELECT COUNT(*) FROM dbo.[riddle]) AS riddles_count;");
-                SummaryHtml = RenderSummary(summary);
-
-                DataTable users = QueryDataTable(conn, @"
+                connection.Open();
+                SummaryHtml = RenderSummary(QueryDataTable(
+                    connection,
+                    "SELECT (SELECT COUNT(*) FROM dbo.[user]) AS users_count, (SELECT COUNT(*) FROM dbo.[riddle]) AS riddles_count;"));
+                UsersTableHtml = RenderDataTable(QueryDataTable(connection, @"
 SELECT
-    u.username,
-    u.email,
-    u.[password],
-    (SELECT COUNT(*) FROM dbo.[riddle] r WHERE r.username = u.username) AS riddle_count
+    u.[username],
+    u.[email],
+    u.[password_reset_required],
+    u.[session_version],
+    (SELECT COUNT(*) FROM dbo.[riddle] r WHERE r.[username] = u.[username]) AS riddle_count
 FROM dbo.[user] u
-ORDER BY u.username;");
-                UsersTableHtml = RenderDataTable(users, "No users found.");
-
-                DataTable riddles = QueryDataTable(conn, @"
-SELECT
-    r.riddle_id,
-    r.username,
-    r.riddle_text,
-    r.riddle_hint,
-    r.answer
-FROM dbo.[riddle] r
-ORDER BY r.riddle_id DESC;");
-                RiddlesTableHtml = RenderDataTable(riddles, "No riddles found.");
+ORDER BY u.[username];"), "No users found.");
+                RiddlesTableHtml = RenderDataTable(QueryDataTable(connection, @"
+SELECT [riddle_id], [username], [riddle_text], [riddle_hint], [answer]
+FROM dbo.[riddle]
+ORDER BY [riddle_id] DESC;"), "No riddles found.");
             }
         }
 
         private void SeedDemoData()
         {
-            const string sql = @"
+            using (SqlConnection connection = Helper.ConnectToDb())
+            {
+                connection.Open();
+                using (SqlCommand command = new SqlCommand(@"
 IF NOT EXISTS (SELECT 1 FROM dbo.[user] WHERE [username] = N'demo')
 BEGIN
-    INSERT INTO dbo.[user] ([username], [password], [email])
-    VALUES (N'demo', N'demo', N'demo@local');
+    INSERT INTO dbo.[user]
+        ([username], [password], [email], [password_reset_required], [session_version])
+    VALUES
+        (N'demo', @UnusablePassword, N'demo@example.invalid', 1, 1);
 END;
-
 IF NOT EXISTS (SELECT 1 FROM dbo.[riddle] WHERE [username] = N'demo')
 BEGIN
     INSERT INTO dbo.[riddle] ([riddle_text], [riddle_hint], [answer], [username]) VALUES
     (N'What has keys but can''t open locks?', N'Music', N'A piano', N'demo'),
     (N'I speak without a mouth and hear without ears. What am I?', N'Sound', N'An echo', N'demo'),
     (N'What can travel around the world while staying in one corner?', N'Letters', N'A stamp', N'demo');
-END;";
-
-            ExecuteNonQuery(sql);
-        }
-
-        private void ClearRiddles()
-        {
-            ExecuteNonQuery("DELETE FROM dbo.[riddle];");
+END;", connection))
+                {
+                    command.Parameters.Add("@UnusablePassword", SqlDbType.NVarChar, 300).Value =
+                        PasswordSecurity.CreateUnusablePasswordHash();
+                    command.ExecuteNonQuery();
+                }
+            }
         }
 
         private void ResetUsersAndRiddles()
         {
-            const string sql = @"
+            using (SqlConnection connection = Helper.ConnectToDb())
+            {
+                connection.Open();
+                using (SqlCommand command = new SqlCommand(@"
 DELETE FROM dbo.[riddle];
 DELETE FROM dbo.[user];
-
-INSERT INTO dbo.[user] ([username], [password], [email])
-VALUES (N'demo', N'demo', N'demo@local');
-
+INSERT INTO dbo.[user]
+    ([username], [password], [email], [password_reset_required], [session_version])
+VALUES
+    (N'demo', @UnusablePassword, N'demo@example.invalid', 1, 1);
 INSERT INTO dbo.[riddle] ([riddle_text], [riddle_hint], [answer], [username]) VALUES
 (N'What has keys but can''t open locks?', N'Music', N'A piano', N'demo'),
 (N'I speak without a mouth and hear without ears. What am I?', N'Sound', N'An echo', N'demo'),
-(N'What can travel around the world while staying in one corner?', N'Letters', N'A stamp', N'demo');";
-
-            ExecuteNonQuery(sql);
+(N'What can travel around the world while staying in one corner?', N'Letters', N'A stamp', N'demo');", connection))
+                {
+                    command.Parameters.Add("@UnusablePassword", SqlDbType.NVarChar, 300).Value =
+                        PasswordSecurity.CreateUnusablePasswordHash();
+                    command.ExecuteNonQuery();
+                }
+            }
         }
 
         private void DeleteUserByUsername(string username)
@@ -300,20 +333,16 @@ INSERT INTO dbo.[riddle] ([riddle_text], [riddle_hint], [answer], [username]) VA
                 SetStatus("Username is required.", true);
                 return;
             }
-
-            using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
+            using (SqlConnection connection = Helper.ConnectToDb())
+            using (SqlCommand command = new SqlCommand(
+                "DELETE FROM dbo.[riddle] WHERE [username] = @Username; DELETE FROM dbo.[user] WHERE [username] = @Username;",
+                connection))
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand(
-                    "DELETE FROM dbo.[riddle] WHERE username = @Username; DELETE FROM dbo.[user] WHERE username = @Username;",
-                    conn))
-                {
-                    cmd.Parameters.Add("@Username", SqlDbType.NVarChar, 300).Value = cleaned;
-                    cmd.ExecuteNonQuery();
-                }
+                command.Parameters.Add("@Username", SqlDbType.NVarChar, 300).Value = cleaned;
+                connection.Open();
+                command.ExecuteNonQuery();
             }
-
-            SetStatus("Deleted user (and related riddles): " + Encode(cleaned));
+            SetStatus("Deleted user and related riddles: " + cleaned);
         }
 
         private void DeleteRiddleById(string riddleIdText)
@@ -324,148 +353,132 @@ INSERT INTO dbo.[riddle] ([riddle_text], [riddle_hint], [answer], [username]) VA
                 SetStatus("Valid riddle_id is required.", true);
                 return;
             }
-
-            using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
+            using (SqlConnection connection = Helper.ConnectToDb())
+            using (SqlCommand command = new SqlCommand(
+                "DELETE FROM dbo.[riddle] WHERE [riddle_id] = @RiddleId;",
+                connection))
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("DELETE FROM dbo.[riddle] WHERE riddle_id = @RiddleId;", conn))
-                {
-                    cmd.Parameters.Add("@RiddleId", SqlDbType.Int).Value = riddleId;
-                    int rows = cmd.ExecuteNonQuery();
-                    SetStatus("Deleted riddles: " + rows);
-                }
+                command.Parameters.Add("@RiddleId", SqlDbType.Int).Value = riddleId;
+                connection.Open();
+                SetStatus("Deleted riddles: " + command.ExecuteNonQuery());
             }
         }
 
         private void RunSqlFromForm()
         {
             string sql = Request.Form["sql"] ?? string.Empty;
-            SqlMode = ((Request.Form["sql_mode"] ?? "query").Trim().ToLowerInvariant() == "exec") ? "exec" : "query";
+            SqlMode = string.Equals(
+                (Request.Form["sql_mode"] ?? "query").Trim(),
+                "exec",
+                StringComparison.OrdinalIgnoreCase) ? "exec" : "query";
             EncodedSqlInput = Encode(sql);
-
-            if (string.IsNullOrWhiteSpace(sql))
+            if (string.IsNullOrWhiteSpace(sql) || sql.Length > 20000)
             {
-                SetStatus("SQL input is empty.", true);
+                SetStatus("SQL input is empty or too long.", true);
                 return;
             }
 
-            using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
+            using (SqlConnection connection = Helper.ConnectToDb())
             {
-                conn.Open();
+                connection.Open();
                 if (SqlMode == "exec")
                 {
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (SqlCommand command = new SqlCommand(sql, connection))
                     {
-                        int rows = cmd.ExecuteNonQuery();
-                        SetStatus("SQL executed. Rows affected: " + rows);
+                        command.CommandTimeout = 30;
+                        SetStatus("SQL executed. Rows affected: " + command.ExecuteNonQuery());
                     }
                     SqlResultHtml = string.Empty;
                 }
                 else
                 {
-                    DataTable dt = new DataTable();
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                    DataTable table = new DataTable();
+                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                     {
-                        adapter.Fill(dt);
+                        command.CommandTimeout = 30;
+                        adapter.Fill(table);
                     }
-                    SqlResultHtml = RenderDataTable(dt, "Query returned 0 rows.");
-                    SetStatus("Query executed. Rows returned: " + dt.Rows.Count);
+                    SqlResultHtml = RenderDataTable(table, "Query returned 0 rows.");
+                    SetStatus("Query executed. Rows returned: " + table.Rows.Count);
                 }
             }
         }
 
-        private static DataTable QueryDataTable(SqlConnection conn, string sql)
+        private static DataTable QueryDataTable(SqlConnection connection, string sql)
         {
-            DataTable dt = new DataTable();
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+            DataTable table = new DataTable();
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            using (SqlDataAdapter adapter = new SqlDataAdapter(command))
             {
-                adapter.Fill(dt);
+                adapter.Fill(table);
             }
-            return dt;
+            return table;
         }
 
-        private void ExecuteNonQuery(string sql)
+        private static void ExecuteNonQuery(string sql)
         {
-            using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
+            using (SqlConnection connection = Helper.ConnectToDb())
+            using (SqlCommand command = new SqlCommand(sql, connection))
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.ExecuteNonQuery();
-                }
+                connection.Open();
+                command.ExecuteNonQuery();
             }
         }
 
         private void SetStatus(string message, bool isError = false)
         {
-            if (isError)
-            {
-                StatusHtml = "<div class=\"status\" style=\"background:#fef2f2;border-color:#fecaca;color:#7f1d1d;\">" + Encode(message) + "</div>";
-            }
-            else
-            {
-                StatusHtml = "<div class=\"status\">" + Encode(message) + "</div>";
-            }
+            string style = isError
+                ? " style=\"background:#fef2f2;border-color:#fecaca;color:#7f1d1d;\""
+                : string.Empty;
+            StatusHtml = "<div class=\"status\"" + style + ">" + Encode(message) + "</div>";
         }
 
-        private static string RenderSummary(DataTable dt)
+        private static string RenderSummary(DataTable table)
         {
-            if (dt.Rows.Count == 0)
+            if (table.Rows.Count == 0)
             {
                 return "<p class='muted'>No summary available.</p>";
             }
-
-            DataRow row = dt.Rows[0];
-            StringBuilder sb = new StringBuilder();
-            sb.Append("<div class='summary-grid'>");
-            sb.Append("<div class='summary-box'><div class='label'>Users</div><div class='value'>");
-            sb.Append(Encode(row["users_count"]));
-            sb.Append("</div></div>");
-            sb.Append("<div class='summary-box'><div class='label'>Riddles</div><div class='value'>");
-            sb.Append(Encode(row["riddles_count"]));
-            sb.Append("</div></div>");
-            sb.Append("</div>");
-            return sb.ToString();
+            DataRow row = table.Rows[0];
+            return "<div class='summary-grid'>" +
+                "<div class='summary-box'><div class='label'>Users</div><div class='value'>" +
+                Encode(row["users_count"]) + "</div></div>" +
+                "<div class='summary-box'><div class='label'>Riddles</div><div class='value'>" +
+                Encode(row["riddles_count"]) + "</div></div></div>";
         }
 
-        private static string RenderDataTable(DataTable dt, string emptyMessage)
+        private static string RenderDataTable(DataTable table, string emptyMessage)
         {
-            if (dt.Rows.Count == 0)
+            if (table.Rows.Count == 0)
             {
                 return "<p class='muted'>" + Encode(emptyMessage) + "</p>";
             }
-
-            StringBuilder sb = new StringBuilder();
-            sb.Append("<div class='table-wrap'><table><thead><tr>");
-            foreach (DataColumn col in dt.Columns)
+            StringBuilder builder = new StringBuilder();
+            builder.Append("<div class='table-wrap'><table><thead><tr>");
+            foreach (DataColumn column in table.Columns)
             {
-                sb.Append("<th>").Append(Encode(col.ColumnName)).Append("</th>");
+                builder.Append("<th>").Append(Encode(column.ColumnName)).Append("</th>");
             }
-            sb.Append("</tr></thead><tbody>");
-
-            foreach (DataRow row in dt.Rows)
+            builder.Append("</tr></thead><tbody>");
+            foreach (DataRow row in table.Rows)
             {
-                sb.Append("<tr>");
-                foreach (DataColumn col in dt.Columns)
+                builder.Append("<tr>");
+                foreach (DataColumn column in table.Columns)
                 {
-                    sb.Append("<td>").Append(Encode(row[col])).Append("</td>");
+                    builder.Append("<td>").Append(Encode(row[column])).Append("</td>");
                 }
-                sb.Append("</tr>");
+                builder.Append("</tr>");
             }
-
-            sb.Append("</tbody></table></div>");
-            return sb.ToString();
+            builder.Append("</tbody></table></div>");
+            return builder.ToString();
         }
 
         private static string Encode(object value)
         {
-            if (value == null || value == DBNull.Value)
-            {
-                return string.Empty;
-            }
-            return HttpUtility.HtmlEncode(Convert.ToString(value));
+            return value == null || value == DBNull.Value
+                ? string.Empty
+                : HttpUtility.HtmlEncode(Convert.ToString(value));
         }
     }
 }

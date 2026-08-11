@@ -41,7 +41,7 @@
     </head>
 
     <body>
-        <div id="sessionBridge" style="display:none" data-loggedin="<%= UtilFunctions.UtilFunctionsClass.IsLoggedIn(Session).ToString().ToLowerInvariant() %>" data-username="<%= Session["username"] ?? "" %>"></div>
+        <div id="sessionBridge" style="display:none" data-loggedin="<%= UtilFunctions.UtilFunctionsClass.IsLoggedIn(Session).ToString().ToLowerInvariant() %>" data-username="<%= System.Web.HttpUtility.HtmlAttributeEncode(System.Convert.ToString(Session["username"])) %>"></div>
         <div id="availableRiddlesContainer" class="container page-card">
             <h1 class="page-title">Available Riddles</h1>
             <ul id="Riddles" class="list-reset">

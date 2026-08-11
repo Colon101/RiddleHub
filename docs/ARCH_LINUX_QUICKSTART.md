@@ -1,74 +1,73 @@
-# Arch Linux Quick Start
+# Arch Linux quick start
 
-RiddleHub is currently an ASP.NET Web Forms (.NET Framework) application, so Linux support is legacy and constrained.
+RiddleHub is an ASP.NET Web Forms (.NET Framework) application. Linux hosting is
+legacy and best-effort via Mono. Windows with IIS is the Microsoft-supported
+production option.
 
-- **Chosen strategy (Option A):** Mono hosting with **Apache + mod_mono** (preferred).
-- **Legacy escape hatch:** `xsp4` is available only as explicit opt-in fallback.
-- **Long-term recommendation (Option B):** migrate away from Web Forms to ASP.NET Core for first-class Linux support.
+## 1. Bootstrap prerequisites and build
 
-> Note: the upstream `mono/xsp` repository is archived, so this project treats `xsp4` as dev-only fallback rather than the primary Linux host.
->
-> Support note: ASP.NET Web Forms is part of .NET Framework, and .NET Framework is Windows-only. For Microsoft-supported hosting, run on Windows + IIS.
-
-## 1) Bootstrap prerequisites and restore/build
 From the repository root:
 
 ```bash
 ./scripts/bootstrap-arch.sh
 ```
 
-This script validates required tools (`mono`, `msbuild`/`xbuild`, `nuget`) and ensures at least one Linux host is available:
-- `apachectl` with `mono_module` loaded (**preferred**)
-
-It can also use `xsp4` as an explicit legacy fallback only when `RIDDLEHUB_ALLOW_LEGACY_XSP=1`.
-
-It also restores packages, builds the solution, and prints exact run commands.
-By default it auto-installs missing Arch/AUR dependencies; disable with `RIDDLEHUB_AUTO_INSTALL=0`.
-
-Install packages directly (if needed):
+The script validates Mono, `msbuild`/`xbuild`, NuGet, and a host. Apache with
+`mod_mono` is preferred. The archived `xsp4` host is an explicit development
+fallback only:
 
 ```bash
-sudo pacman -S --needed mono mono-msbuild nuget apache
-# optional legacy host fallback
-yay -S xsp
-# or: git clone https://aur.archlinux.org/xsp.git && cd xsp && makepkg -si
-# optional SQL Server container
-sudo pacman -S --needed docker
+RIDDLEHUB_ALLOW_LEGACY_XSP=1 ./scripts/bootstrap-arch.sh
 ```
 
-Optional: set `RIDDLEHUB_APACHE_CONF=/etc/httpd/conf/extra/riddlehub.conf` so bootstrap/run can verify your Apache vhost file exists.
+Automatic package installation can be disabled with
+`RIDDLEHUB_AUTO_INSTALL=0`.
 
-## 2) Start the app on Linux
-Use the Linux SQL Server profile and run:
+## 2. Configure secrets
+
+Create unique secrets for each environment. No password has a repository
+default:
+
+```bash
+read -rsp "SQL Server password: " RIDDLEHUB_SQL_PASSWORD; echo
+export RIDDLEHUB_SQL_PASSWORD
+read -rsp "RiddleHub admin password: " RIDDLEHUB_ADMIN_PASSWORD; echo
+export RIDDLEHUB_ADMIN_PASSWORD
+```
+
+The admin page is disabled when `RIDDLEHUB_ADMIN_PASSWORD` is absent. For local
+file-based configuration, copy `.env.example` to `.env` in the repository root,
+set mode `0600`, and export its values before launching the process. Never put
+`.env` below the `RiddleHub/` web root.
+
+## 3. Start the app
 
 ```bash
 export RIDDLEHUB_CONNECTION_NAME=LinuxSqlServerDev
 ./scripts/run-linux.sh
 ```
 
-Host selection options:
+The HTTP and Docker SQL listeners bind to `127.0.0.1`. A non-loopback
+`RIDDLEHUB_BIND_ADDRESS` is rejected. For Apache mode, copy and enable
+`scripts/apache-riddlehub.conf.example`, then set its path:
 
 ```bash
-# auto-detect (default)
-./scripts/run-linux.sh
-
-# force Apache + mod_mono
-RIDDLEHUB_APACHE_CONF=/etc/httpd/conf/extra/riddlehub.conf RIDDLEHUB_SERVER=apache-mod_mono ./scripts/run-linux.sh
-
-# force xsp4 fallback (legacy opt-in)
-RIDDLEHUB_ALLOW_LEGACY_XSP=1 RIDDLEHUB_SERVER=xsp4 PORT=8080 ./scripts/run-linux.sh
+RIDDLEHUB_APACHE_CONF=/etc/httpd/conf/extra/riddlehub.conf \
+  RIDDLEHUB_SERVER=apache-mod_mono ./scripts/run-linux.sh
 ```
 
-`run-linux.sh` also auto-installs missing host dependencies by default (`RIDDLEHUB_AUTO_INSTALL=0` to disable).
-With `RIDDLEHUB_CONNECTION_NAME=LinuxSqlServerDev`, `run-linux.sh` also auto-starts Docker daemon and auto-creates/starts SQL container `riddlehub-sql`.
+To explicitly use the legacy XSP fallback:
 
-## 3) Database profile notes
-Connection profiles are in `RiddleHub/Web.config`:
+```bash
+RIDDLEHUB_ALLOW_LEGACY_XSP=1 RIDDLEHUB_SERVER=xsp4 ./scripts/run-linux.sh
+```
 
-- `WindowsDevLocalDb`: existing Windows LocalDB + `App_Data/db.mdf`
-- `LinuxSqlServerDev`: SQL Server login for Linux dev (container or external SQL Server)
+## 4. Database initialization
 
-If you use Docker, `bootstrap-arch.sh` prints a ready-to-run `docker run` command for SQL Server.
+`WindowsDevLocalDb` and `LinuxSqlServerDev` use a named `RiddleHub` database.
+The application creates the database/schema when the configured SQL identity is
+allowed to do so. No MDF/LDF files or demo credentials are shipped. For an
+existing database, legacy password rows are marked for a mandatory password
+reset and migrated after the user proves knowledge of the old password.
 
-## 4) Apache vhost template
-A starter config is included at `scripts/apache-riddlehub.conf.example`. Copy and adapt paths/user as needed.
+Read [SECURE_DEPLOYMENT.md](SECURE_DEPLOYMENT.md) before any remote deployment.

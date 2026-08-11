@@ -75,15 +75,10 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\db.mdf" />
     <Content Include="App_Data\dbo.riddle.sql" />
     <Content Include="App_Data\dbo.user.sql" />
-    <Content Include="App_Data\db_log.ldf">
-      <DependentUpon>db.mdf</DependentUpon>
-    </Content>
     <Content Include="account.aspx" />
     <Content Include="admin.aspx" />
-    <Content Include="connstring.aspx" />
     <Content Include="create.aspx" />
     <Content Include="Default.aspx" />
     <Content Include="editriddle.aspx" />
@@ -99,6 +94,7 @@
     <Content Include="myriddles.aspx" />
     <Content Include="pagestyles.css" />
     <Content Include="riddles.aspx" />
+    <Content Include="resetpassword.aspx" />
     <Content Include="signout.aspx" />
     <Content Include="signup.aspx" />
     <Content Include="styles.css" />
@@ -110,6 +106,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Data\Helper.cs" />
+    <Compile Include="PasswordSecurity.cs" />
+    <Compile Include="SecurityControls.cs" />
     <Compile Include="account.aspx.cs">
       <DependentUpon>account.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -120,13 +118,6 @@
     <Compile Include="admin.aspx.cs">
       <DependentUpon>admin.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="connstring.aspx.cs">
-      <DependentUpon>connstring.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="connstring.aspx.designer.cs">
-      <DependentUpon>connstring.aspx</DependentUpon>
     </Compile>
     <Compile Include="editriddle.aspx.cs">
       <DependentUpon>editriddle.aspx</DependentUpon>
@@ -148,6 +139,13 @@
     </Compile>
     <Compile Include="riddles.aspx.designer.cs">
       <DependentUpon>riddles.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="resetpassword.aspx.cs">
+      <DependentUpon>resetpassword.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="resetpassword.aspx.designer.cs">
+      <DependentUpon>resetpassword.aspx</DependentUpon>
     </Compile>
     <Compile Include="signout.aspx.cs">
       <DependentUpon>signout.aspx</DependentUpon>

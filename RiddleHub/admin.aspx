@@ -143,18 +143,19 @@
                 <h1>RiddleHub Admin Panel</h1>
                 <p class="muted">Admin password is not configured.</p>
                 <%= StatusHtml %>
-                <p class="muted">Set <code>RIDDLEHUB_ADMIN_PASSWORD</code> in environment variables or in a <code>.env</code> file.</p>
+                <p class="muted">Set <code>RIDDLEHUB_ADMIN_PASSWORD</code> in the process environment or in a protected <code>.env</code> file outside the web root.</p>
             </div>
         <% } else if (!IsAdminAuthenticated) { %>
             <div class="card" style="max-width: 460px; margin: 60px auto;">
                 <h1>Admin Login</h1>
-                <p class="muted">Enter admin password from <code>.env</code>.</p>
+                <p class="muted">Enter the admin password configured outside the web root.</p>
                 <%= StatusHtml %>
                 <form method="post" action="admin">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                     <input type="hidden" name="action" value="admin_login" />
                     <div class="controls" style="gap: 10px; align-items: center;">
                         <label for="adminPassword">Password:</label>
-                        <input id="adminPassword" type="password" name="admin_password" required="required" />
+                        <input id="adminPassword" type="password" name="admin_password" maxlength="256" required="required" />
                         <button type="submit">Login</button>
                     </div>
                 </form>
@@ -166,22 +167,27 @@
                 <%= StatusHtml %>
                 <div class="controls">
                     <form method="post" action="admin">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                         <input type="hidden" name="action" value="refresh" />
                         <button type="submit">Refresh</button>
                     </form>
                     <form method="post" action="admin">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                         <input type="hidden" name="action" value="seed_demo" />
                         <button type="submit">Seed Demo Data</button>
                     </form>
                     <form method="post" action="admin">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                         <input type="hidden" name="action" value="clear_riddles" />
                         <button class="warn" type="submit">Delete All Riddles</button>
                     </form>
                     <form method="post" action="admin">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                         <input type="hidden" name="action" value="clear_all" />
                         <button class="warn" type="submit">Reset Users + Riddles</button>
                     </form>
                     <form method="post" action="admin">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                         <input type="hidden" name="action" value="admin_logout" />
                         <button type="submit">Logout</button>
                     </form>
@@ -196,6 +202,7 @@
             <div class="card">
                 <h2>Users</h2>
                 <form method="post" action="admin" class="controls" style="margin-bottom: 10px;">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                     <input type="hidden" name="action" value="delete_user" />
                     <label for="deleteUser">Delete username:</label>
                     <input id="deleteUser" type="text" name="username" required="required" />
@@ -207,6 +214,7 @@
             <div class="card">
                 <h2>Riddles</h2>
                 <form method="post" action="admin" class="controls" style="margin-bottom: 10px;">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                     <input type="hidden" name="action" value="delete_riddle" />
                     <label for="deleteRiddle">Delete riddle id:</label>
                     <input id="deleteRiddle" type="number" name="riddle_id" min="1" required="required" />
@@ -218,6 +226,7 @@
             <div class="card">
                 <h2>SQL Runner</h2>
                 <form method="post" action="admin">
+                    <input type="hidden" name="csrf_token" value="<%= CsrfTokenEncoded %>" />
                     <input type="hidden" name="action" value="run_sql" />
                     <div class="controls" style="margin-bottom: 10px;">
                         <label for="sqlMode">Mode:</label>
@@ -227,7 +236,7 @@
                         </select>
                         <button type="submit">Run SQL</button>
                     </div>
-                    <textarea name="sql" placeholder="SELECT TOP 20 * FROM dbo.[riddle] ORDER BY riddle_id DESC;"><%= EncodedSqlInput %></textarea>
+                    <textarea name="sql" maxlength="20000" placeholder="SELECT TOP 20 * FROM dbo.[riddle] ORDER BY riddle_id DESC;"><%= EncodedSqlInput %></textarea>
                 </form>
                 <div style="margin-top: 10px;">
                     <%= SqlResultHtml %>

@@ -1,12 +1,14 @@
-# Example Apache + mod_mono site for RiddleHub (adjust paths for your machine)
-# Save as e.g. /etc/httpd/conf/extra/riddlehub.conf and include it from httpd.conf.
+# Development-only Apache + mod_mono site for RiddleHub.
+# The application listener is intentionally loopback-only. For remote access,
+# terminate TLS in a separate production vhost/reverse proxy as described in
+# docs/SECURE_DEPLOYMENT.md.
 
 # LoadModule mono_module modules/mod_mono.so
 # Include conf/extra/riddlehub.conf
 
-Listen 8080
+Listen 127.0.0.1:8080
 
-<VirtualHost *:8080>
+<VirtualHost 127.0.0.1:8080>
     ServerName localhost
     DocumentRoot "/workspace/RiddleHub/RiddleHub"
 
@@ -15,9 +17,20 @@ Listen 8080
     MonoSetEnv riddlehub RIDDLEHUB_CONNECTION_NAME=LinuxSqlServerDev
 
     <Directory "/workspace/RiddleHub/RiddleHub">
-        AllowOverride All
+        Options -Indexes
+        AllowOverride None
         Require all granted
+
+        # Defense in depth for dotfiles such as an accidentally copied .env.
+        <FilesMatch "^\.">
+            Require all denied
+        </FilesMatch>
     </Directory>
 
-    AddType application/x-asp-net .aspx .ashx .asmx .ascx .config .cs
+    # ASP.NET also blocks these directories, but Apache should never serve them.
+    <LocationMatch "^/(?:App_Data|bin|obj)(?:/|$)">
+        Require all denied
+    </LocationMatch>
+
+    AddType application/x-asp-net .aspx .ashx .asmx .ascx
 </VirtualHost>

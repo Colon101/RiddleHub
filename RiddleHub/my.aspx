@@ -33,7 +33,8 @@
 </head>
 
 <body>
-    <div id="sessionBridge" style="display:none" data-loggedin="true" data-username="<%= Session["username"] ?? "" %>"></div>
+    <div id="sessionBridge" style="display:none" data-loggedin="true"
+        data-username="<%= System.Web.HttpUtility.HtmlAttributeEncode(System.Convert.ToString(Session["username"])) %>"></div>
     <div id="usernametxt" style="display: none"><asp:Literal ID="username" runat="server"></asp:Literal></div>
 
     <div id="myRiddlesContainer" class="container page-card">
@@ -52,6 +53,7 @@
 
     <script>
         relayMessage("my");
+        const csrfToken = "<%= CsrfTokenJavaScript %>";
 
         const riddleListElement = document.getElementById("riddleList");
         const emptyMessageElement = document.getElementById("emptyMessage");
@@ -84,7 +86,7 @@
             const response = await fetch("/editriddle.aspx", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "action=delete&id=" + encodeURIComponent(id)
+                body: "action=delete&id=" + encodeURIComponent(id) + "&csrf_token=" + encodeURIComponent(csrfToken)
             });
 
             if (response.ok) {

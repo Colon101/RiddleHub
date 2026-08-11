@@ -1,64 +1,61 @@
-﻿using System;
+using System;
 using System.Data.SqlClient;
-using System.Diagnostics;
+using RiddleHub.Security;
 using UtilFunctions;
 
 namespace RiddleHub
 {
     public partial class Create : System.Web.UI.Page
     {
+        public string CsrfTokenEncoded = string.Empty;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            bool loggedIn = UtilFunctionsClass.IsLoggedIn(Session);
-            if (!loggedIn)
+            if (!UtilFunctionsClass.IsLoggedIn(Session))
             {
                 Session["login_required"] = true;
                 Response.Redirect("/login.aspx?return=create&required=1");
                 return;
             }
 
+            CsrfTokenEncoded = CsrfProtection.GetEncodedToken(Session);
             if (Request.Form["submit"] == null)
             {
                 return;
             }
-            else
+            if (CsrfProtection.RejectInvalidPost(Request, Response, Session))
             {
-                if (!UtilFunctionsClass.IsLoggedIn(Session))
-                {
-                    Session["login_required"] = true;
-                    Response.Redirect("/login.aspx?return=create&required=1");
-                    return;
-                }
-                if (!string.IsNullOrEmpty(Request.Form["hint"]) || (Request.Form["hint"].Length != 0))
-                {
-                    string query = "INSERT INTO dbo.[riddle] (riddle_text, riddle_hint, answer, username) VALUES (@Text, @Hint, @Answer, @Username);";
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
 
-                    using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
-                    {
-                        SqlCommand cmd = new SqlCommand(query, conn);
-                        cmd.Parameters.Add("@Text", System.Data.SqlDbType.NVarChar).Value = Request.Form["riddle"];
-                        cmd.Parameters.Add("@Hint", System.Data.SqlDbType.NVarChar).Value = Request.Form["hint"];
-                        cmd.Parameters.Add("@Answer", System.Data.SqlDbType.NVarChar).Value = Request.Form["answer"];
-                        cmd.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar).Value = Session["username"];
+            string text = (Request.Form["riddle"] ?? string.Empty).Trim();
+            string hint = (Request.Form["hint"] ?? string.Empty).Trim();
+            string answer = (Request.Form["answer"] ?? string.Empty).Trim();
+            if (text.Length == 0 || text.Length > 2000 ||
+                hint.Length > 100 ||
+                answer.Length == 0 || answer.Length > 100)
+            {
+                Response.StatusCode = 400;
+                Response.TrySkipIisCustomErrors = true;
+                Response.Write("Invalid riddle fields.");
+                return;
+            }
 
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                else
-                {
-                    string query = "INSERT INTO dbo.[riddle] (riddle_text, answer, username) VALUES (@Text, @Answer, @Username);";
-                    using (SqlConnection conn = Helper.ConnectToDb("db.mdf"))
-                    {
-                        SqlCommand cmd = new SqlCommand(query, conn);
-                        cmd.Parameters.Add("@Text", System.Data.SqlDbType.NVarChar).Value = Request.Form["riddle"];
-                        cmd.Parameters.Add("@Answer", System.Data.SqlDbType.NVarChar).Value = Request.Form["answer"];
-                        cmd.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar).Value = Session["username"];
-
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-                }
+            const string query = @"
+INSERT INTO dbo.[riddle] (riddle_text, riddle_hint, answer, username)
+VALUES (@Text, @Hint, @Answer, @Username);";
+            using (SqlConnection connection = Helper.ConnectToDb())
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.Add("@Text", System.Data.SqlDbType.NVarChar, 2000).Value = text;
+                command.Parameters.Add("@Hint", System.Data.SqlDbType.NVarChar, 100).Value =
+                    hint.Length == 0 ? (object)DBNull.Value : hint;
+                command.Parameters.Add("@Answer", System.Data.SqlDbType.NVarChar, 100).Value = answer;
+                command.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar, 300).Value =
+                    Convert.ToString(Session["username"]);
+                connection.Open();
+                command.ExecuteNonQuery();
             }
         }
     }
